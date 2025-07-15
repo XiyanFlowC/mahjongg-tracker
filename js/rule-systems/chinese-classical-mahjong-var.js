@@ -72,8 +72,8 @@ class ChineseClassicalMahjongVar extends BaseRuleSystem {
             north: '北圈'
         };
         const roundNames = [null, '东', '南', '西', '北'];
-        //return `${windNames[wind] || wind}${roundNames[round]}`;
-        return `${windNames[wind] || wind}${round ? `${round}` : ''}`;
+        return `${windNames[wind] || wind}${roundNames[round]}`;
+        //return `${windNames[wind] || wind}${round ? `${round}` : ''}`;
     }
     
     calculateScores(winner, payers, fanCount, fuCount, winType, banker, baoPlayer = 'none') {
