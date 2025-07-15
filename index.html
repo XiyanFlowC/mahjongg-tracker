@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麻将记分器</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/scorepad.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 分数盘 -->
+        <div id="scorepad-container">
+            <div id="scorepad" class="scorepad">
+                <!-- 东家（下方） -->
+                <div class="player east" data-position="east">
+                    <div class="xianggong-mark hidden">相</div>
+                    <div class="wind">东</div>
+                    <div class="player-status hidden"></div>
+                    <div class="player-info">
+                        <div class="score">25000</div>
+                        <div class="name">东家</div>
+                    </div>
+                    <div class="menu-btn" onclick="showPlayerMenu('east')">⋮</div>
+                </div>
+                
+                <!-- 北家（左侧） -->
+                <div class="player north" data-position="north">
+                    <div class="player-content">
+                        <div class="xianggong-mark hidden">相</div>
+                        <div class="wind">北</div>
+                        <div class="player-status hidden"></div>
+                        <div class="player-info">
+                            <div class="score">25000</div>
+                            <div class="name">北家</div>
+                        </div>
+                        <div class="menu-btn" onclick="showPlayerMenu('north')">⋮</div>
+                    </div>
+                </div>
+                
+                <!-- 西家（上方） -->
+                <div class="player west" data-position="west">
+                    <div class="xianggong-mark hidden">相</div>
+                    <div class="wind">西</div>
+                    <div class="player-status hidden"></div>
+                    <div class="player-info">
+                        <div class="score">25000</div>
+                        <div class="name">西家</div>
+                    </div>
+                    <div class="menu-btn" onclick="showPlayerMenu('west')">⋮</div>
+                </div>
+                
+                <!-- 南家（右侧） -->
+                <div class="player south" data-position="south">
+                    <div class="player-content">
+                        <div class="xianggong-mark hidden">相</div>
+                        <div class="wind">南</div>
+                        <div class="player-status hidden"></div>
+                        <div class="player-info">
+                            <div class="score">25000</div>
+                            <div class="name">南家</div>
+                        </div>
+                        <div class="menu-btn" onclick="showPlayerMenu('south')">⋮</div>
+                    </div>
+                </div>
+                
+                <!-- 中央区域 -->
+                <div class="center" onclick="handleCenterClick()">
+                    <div class="game-info">
+                        <div class="round">东1局</div>
+                        <div class="honba">0本场</div>
+                    </div>
+                    <div id="center-button" class="center-button hidden" onclick="handleCenterButtonClick()"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主菜单控制 -->
+        <div id="main-menu-toggle" onclick="toggleMainMenu()">☰</div>
+        
+        <!-- 主菜单 -->
+        <div id="main-menu" class="main-menu collapsed">
+            <div class="menu-section">
+                <h3>游戏控制</h3>
+                <button onclick="rotateScorepad()">旋转分数盘</button>
+                <button onclick="showRoundDialog()">设定圈局</button>
+                <button onclick="showRulesDialog()">选择规则</button>
+                <button onclick="showRuleSettingsDialog()">规则设置</button>
+                <button onclick="showPatternDialog()">输入表示法</button>
+            </div>
+            <div class="menu-section">
+                <h3>记录</h3>
+                <button onclick="showGameHistory()">查看记录</button>
+                <button onclick="exportData()">导出数据</button>
+                <button onclick="importData()">导入数据</button>
+            </div>
+            <div class="menu-section">
+                <h3>游戏</h3>
+                <button onclick="newGame()">新游戏</button>
+                <button onclick="resetScores()">重置分数</button>
+            </div>
+            <div class="menu-section">
+                <h3>帮助</h3>
+                <button onclick="showYakuDialog()">役种说明</button>
+                <button onclick="jumpToAnalyseTool()">跳转到分析工具</button>
+                <button onclick="showHelp()">帮助文档</button>
+                <button onclick="showAbout()">关于</button>
+            </div>
+
+        </div>
+    </div>
+    
+    <!-- 模态对话框 -->
+    <div id="modal-overlay" class="modal-overlay hidden"></div>
+    
+    <!-- 玩家菜单 -->
+    <div id="player-menu" class="modal player-menu hidden">
+        <div class="modal-content">
+            <h3 id="player-menu-title">玩家菜单</h3>
+            <button onclick="showPlayerHistory()">查看记录</button>
+            <button onclick="editPlayerName()">编辑名字</button>
+            <button onclick="setPlayerXiangGong()">设为相公</button>
+            <button onclick="declareFraud()">诈胡</button>
+            <button onclick="closeModal()">取消</button>
+        </div>
+    </div>
+    
+    <!-- 流局确认对话框 -->
+    <div id="draw-dialog" class="modal hidden">
+        <div class="modal-content">
+            <h3>确认流局</h3>
+            <p>确定要流局吗？</p>
+            <div class="button-group">
+                <button onclick="confirmDraw()">确定</button>
+                <button onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 和牌结算对话框 -->
+    <div id="win-dialog" class="modal hidden">
+        <div class="modal-content">
+            <h3>和牌结算</h3>
+            <div class="win-info">
+                <p>和牌方：<span id="winner-name"></span></p>
+                <p>类型：<span id="win-type"></span></p>
+                <p>出铳方：<span id="payers"></span></p>
+            </div>
+            <div class="score-input">
+                <div>
+                    <label id="fan-label" for="fan-input">番数：</label>
+                    <input type="number" id="fan-input" min="0" value="0" />
+                </div>
+                <div>
+                    <label id="fu-label" for="fu-input">符数：</label>
+                    <input type="number" id="fu-input" min="30" value="30" step="10" />
+                </div>
+                <div>
+                    <label for="bao-select">包牌者：</label>
+                    <select id="bao-select">
+                        <option value="none">无包牌</option>
+                    </select>
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="calculateAuto()">计算</button>
+                <button onclick="confirmWin()">确定</button>
+                <button onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 计算对话框 -->
+    <div id="calc-dialog" class="modal hidden">
+        <div class="modal-content">
+            <h3>自动计算</h3>
+            <div class="hand-input">
+                <div>
+                    <label for="hand-tiles">手牌：</label>
+                    <input type="text" id="hand-tiles" placeholder="例: 123m456p789s1122z">
+                </div>
+                <div>
+                    <label for="win-tile">和牌：</label>
+                    <input type="text" id="win-tile" placeholder="例: 1z">
+                </div>
+                <div>
+                    <label for="melds">鸣牌：</label>
+                    <input type="text" id="melds" placeholder="例: 111m,456p,(1111m) 括号表示暗杠">
+                </div>
+                <div id="win-conditions" class="win-conditions">
+                    <!-- 条件将由规则系统动态生成 -->
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="performCalculation()">计算</button>
+                <button onclick="closeCalcDialog()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 翻符详情确认对话框 -->
+    <div id="fanfu-detail-dialog" class="modal hidden">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>翻符详情</h3>
+                <span class="close" onclick="closeFanFuDetailDialog()">&times;</span>
+            </div>
+            
+            <div id="detail-tile-display" class="tile-display">
+                <!-- 牌型显示区域 -->
+            </div>
+            
+            <div class="detail-section">
+                <h4>翻数来源</h4>
+                <div id="fan-details-container" class="details-container">
+                    <!-- 翻数详情将在这里动态生成 -->
+                </div>
+            </div>
+            
+            <div class="detail-section">
+                <h4>副数来源</h4>
+                <div id="fu-details-container" class="details-container">
+                    <!-- 副数详情将在这里动态生成 -->
+                </div>
+            </div>
+            
+            <div class="summary-section">
+                <div class="summary-row">
+                    <span>总翻数：</span>
+                    <span id="total-fan" class="summary-value"></span>
+                </div>
+                <div class="summary-row">
+                    <span>总副数：</span>
+                    <span id="total-fu" class="summary-value"></span>
+                </div>
+                <div class="summary-row">
+                    <span>最终点数：</span>
+                    <span id="final-points" class="final-value"></span>
+                </div>  
+                <div id="points-note" class="points-note"></div>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="closeFanFuDetailDialog()">取消</button>
+                <button onclick="confirmFanFuCalculation()" class="primary">确认并填入</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 表示法选择对话框 -->
+    <div id="pattern-dialog" class="modal hidden">
+        <div class="modal-content">
+            <h3>选择输入表示法</h3>
+            <div class="pattern-options">
+                <p>选择牌型输入的表示方法：</p>
+                <div id="pattern-list" class="pattern-list">
+                    <!-- 表示法选项将动态生成 -->
+                </div>
+                <div class="pattern-example">
+                    <strong>当前示例：</strong>
+                    <span id="pattern-example-text"></span>
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="applyPatternChange()">应用</button>
+                <button onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 历史记录对话框 -->
+    <div id="history-dialog" class="modal hidden">
+        <div class="modal-content large">
+            <h3 id="history-title">游戏记录</h3>
+            <div class="history-actions hidden" id="history-actions">
+                <button id="undo-btn" class="undo-btn hidden" onclick="undoLastOperation()">
+                    <span class="undo-icon">↶</span> 撤回
+                </button>
+                <span id="undo-info" class="undo-info hidden"></span>
+            </div>
+            <div id="history-container" class="history-container">
+                <!-- 历史记录将在这里动态生成 -->
+            </div>
+            <div class="button-group">
+                <button onclick="closeModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 役种说明对话框 -->
+    <div id="yaku-dialog" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>役种说明</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="yaku-content" class="yaku-content">
+                <!-- 役种内容将动态生成 -->
+            </div>
+            <div class="button-group">
+                <button onclick="closeModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 帮助文档对话框 -->
+    <div id="help-dialog" class="modal hidden">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>帮助文档</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="help-content">
+                <div class="help-section">
+                    <h4>基本操作</h4>
+                    <ul>
+                        <li><strong>和牌输入：</strong>点击和牌玩家进入和牌模式，选择出铳方完成结算</li>
+                        <li><strong>流局：</strong>点击中央区域选择流局</li>
+                        <li><strong>分数盘旋转：</strong>使用主菜单中的"旋转分数盘"功能</li>
+                        <li><strong>圈局设定：</strong>通过主菜单设置当前圈风和局数</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h4>规则系统</h4>
+                    <ul>
+                        <li><strong>选择规则：</strong>支持日本麻将、中国古典麻将等多种规则</li>
+                        <li><strong>规则设置：</strong>可调整各规则的详细参数</li>
+                        <li><strong>自动计算：</strong>支持根据手牌自动计算翻符和点数</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h4>输入表示法</h4>
+                    <ul>
+                        <li><strong>万子：</strong>1-9m (例：123m)</li>
+                        <li><strong>索子：</strong>1-9s (例：456s)</li>
+                        <li><strong>筒子：</strong>1-9p (例：789p)</li>
+                        <li><strong>字牌：</strong>1-7z (1234风牌，567三元牌)</li>
+                        <li><strong>花牌：</strong>1-8f (例：f1表示花牌1)</li>
+                        <li><strong>副露：</strong>用逗号分隔，暗杠用括号表示</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h4>其他功能</h4>
+                    <ul>
+                        <li><strong>记录查看：</strong>查看当前对局的详细记录</li>
+                        <li><strong>数据导入导出：</strong>备份和恢复游戏数据</li>
+                        <li><strong>分析工具：</strong>独立的听牌和翻符计算工具</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="closeModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 关于对话框 -->
+    <div id="about-dialog" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>关于</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="about-content">
+                <div class="about-header">
+                    <h2>麻将记分器</h2>
+                    <p class="version">版本 1.0.0</p>
+                </div>
+                <div class="about-section">
+                    <h4>功能特点</h4>
+                    <ul>
+                        <li>支持多种麻将规则系统</li>
+                        <li>自动翻符计算和点数结算</li>
+                        <li>直观的分数盘界面</li>
+                        <li>完整的对局记录</li>
+                        <li>数据导入导出功能</li>
+                        <li>独立的分析计算工具</li>
+                    </ul>
+                </div>
+                <div class="about-section">
+                    <h4>技术信息</h4>
+                    <p>基于现代Web技术开发，支持离线使用，数据本地存储。</p>
+                </div>
+                <div class="about-section">
+                    <h4>使用说明</h4>
+                    <p>本工具仅供娱乐和学习使用，请遵守当地法律法规。</p>
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="closeModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript模块 -->
+    <script src="js/mahjong-parser.js"></script>
+    <script src="js/ui-controller.js"></script>
+    <script src="js/game-state.js"></script>
+    <script src="js/rule-systems/base-rule.js"></script>
+    <script src="js/rule-systems/japanese-mahjong.js"></script>
+    <script src="js/rule-systems/chinese-classical-mahjong-var.js"></script>
+    <script src="js/rule-systems/hong-kong-mahjong.js"></script>
+    <script src="js/game-history.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,2616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>听牌/翻副计算工具</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .result {
+            background: #f0f8ff;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+
+        .error {
+            background: #ffe6e6;
+            color: #d00;
+        }
+
+        .success {
+            background: #e6ffe6;
+            color: #060;
+        }
+
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #005a87;
+        }
+
+        input,
+        select {
+            margin: 5px;
+            padding: 5px;
+        }
+
+        .rule-selector {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #007cba;
+        }
+
+        .tenpai-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .tenpai-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tenpai-item:hover {
+            background: #e3f2fd;
+            border-color: #007cba;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 124, 186, 0.2);
+        }
+
+        .tenpai-tile {
+            font-weight: bold;
+            color: #007cba;
+            font-size: 24px;
+        }
+
+        .tenpai-value {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 向听推进方案样式 */
+        .shanten-improvement {
+            margin: 10px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .shanten-improvement:hover {
+            background: #e3f2fd;
+            border-color: #007cba;
+            box-shadow: 0 2px 8px rgba(0, 124, 186, 0.1);
+        }
+
+        .improvement-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .improvement-action {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007cba;
+        }
+
+        .improvement-result {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .improvement-details {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .draw-tiles {
+            margin-top: 8px;
+            font-size: 24px;
+            color: #007cba;
+        }
+
+        .current-hand-improvement {
+            background: #e8f5e8;
+            border-color: #4caf50;
+        }
+
+        .current-hand-improvement:hover {
+            background: #c8e6c9;
+        }
+
+        /* 错误信息样式 */
+        .error-message {
+            background: #ffe6e6;
+            color: #d00;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ff9999;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        /* Tile格式的向听选择 */
+        .shanten-tile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .shanten-tile {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .shanten-tile:hover {
+            background: #e3f2fd;
+            border-color: #007cba;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 124, 186, 0.2);
+        }
+
+        .shanten-tile.optimal {
+            background: #e8f5e8;
+            border-color: #4caf50;
+        }
+
+        .shanten-tile.optimal:hover {
+            background: #c8e6c9;
+        }
+
+        .tile-display-large {
+            font-size: 36px;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+
+        .tile-info {
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .tile-details {
+            font-size: 10px;
+            color: #666;
+            line-height: 1.2;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            background: #ffebee;
+            border-radius: 4px;
+            border: 1px solid #e57373;
+        }
+
+        /* 模态对话框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+        }
+
+        .detail-section {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .detail-value {
+            color: #007cba;
+            font-weight: bold;
+        }
+
+        .detail-description {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .summary-section {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #007cba;
+        }
+
+        .modal-buttons {
+            text-align: right;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        /* 听牌详情对话框样式 */
+        .tenpai-detail-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .tenpai-detail-tile {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .tenpai-detail-summary {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007cba;
+            margin-bottom: 5px;
+        }
+
+        .tenpai-detail-points {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .tenpai-detail-section {
+            margin-bottom: 20px;
+        }
+
+        .tenpai-detail-section h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tenpai-detail-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+
+        .tenpai-detail-item {
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tenpai-detail-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .tenpai-detail-item strong {
+            color: #007cba;
+        }
+
+        .tenpai-detail-description {
+            font-size: 14px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .btn-primary {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background: #005a87;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .tile-display {
+            font-size: 32px;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
+        }
+
+        .tile-section {
+            margin: 5px 0;
+        }
+
+        .tile-label {
+            font-size:small;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        /* 规则设置对话框样式 */
+        .rule-settings {
+            margin-top: 15px;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .setting-group h4 {
+            margin-top: 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .setting-item {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-item label {
+            flex: 1;
+            margin-right: 15px;
+        }
+
+        .setting-item input[type="number"],
+        .setting-item select {
+            width: 100px;
+        }
+
+        .button-group {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .button-group button {
+            margin-left: 10px;
+            padding: 8px 15px;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .replacement-item {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .replacement-item:hover {
+            background: #e3f2fd;
+            border-color: #007cba;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 124, 186, 0.1);
+        }
+
+        .replacement-item .tenpai-tile {
+            font-size: 16px;
+        }
+
+        .replacement-item .tenpai-value {
+            font-size: 12px;
+        }
+
+        /* 动作指示器样式 */
+        .tile-action-indicator {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #007cba;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .shanten-tile.discard-tile .tile-action-indicator {
+            background: #dc3545;
+        }
+
+        .shanten-tile.draw-tile .tile-action-indicator {
+            background: #28a745;
+        }
+
+        .shanten-tile {
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>听牌/翻副计算工具</h1>
+
+    <div class="rule-selector">
+        <h2>规则选择</h2>
+        <label>麻将规则:
+            <select id="ruleSelector" onchange="switchRule()">
+                <!-- 选项将通过JavaScript动态生成 -->
+            </select>
+        </label>
+        <div id="ruleInfo" style="margin-top: 10px; color: #666;"></div>
+        <button id="ruleSettingsButton" onclick="showRuleSettingsDialog()" style="margin-top: 10px;">规则设置</button>
+    </div>
+
+    <div class="test-section">
+        <h2>听牌计算</h2>
+        <div>
+            <label>手牌：<input type="text" id="tenpaiHandInput" placeholder="例：123m456p789s11z（13张牌）"
+                    onchange="updateTenpaiDisplay(); calculateTenpai()" /></label><br>
+            <label>副露：<input type="text" id="tenpaiMeldsInput" placeholder="例：123m,456p（可选）"
+                    onchange="updateTenpaiDisplay(); calculateTenpai()" /></label><br>
+            <label>摸牌：<input type="text" id="tenpaiInInput" placeholder="例：1z（可留空）"
+                    onchange="updateTenpaiDisplay(); calculateTenpai()" /></label><br>
+
+            <div id="tenpaiTileDisplay" class="tile-display"></div>
+
+            <h3>游戏状态:</h3>
+            <label>当前圈风: <select id="tenpaiRoundWind">
+                    <option value="east">东风</option>
+                    <option value="south">南风</option>
+                    <option value="west">西风</option>
+                    <option value="north">北风</option>
+                </select></label>
+            <label>门风: <select id="tenpaiPlayerWind">
+                    <option value="east">东家</option>
+                    <option value="south">南家</option>
+                    <option value="west">西家</option>
+                    <option value="north">北家</option>
+                </select></label><br>
+
+            <button onclick="calculateTenpai()">计算听牌</button>
+        </div>
+        <div id="tenpaiResult" class="result"></div>
+        <div id="errorMessage" class="error-message hide"></div>
+        <div id="shantenResult" class="result hide">
+            <h3 id="shantenTitle">未听牌，<span id="shantenNumber">0</span>向听</h3>
+            <div id="replacePlans" style="display: block;">
+                <!-- 替换牌项将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        <div id="winResult" class="result hide">
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px solid #4CAF50;">
+                <h3 style="color: #4CAF50; margin-bottom: 15px;">🎉 恭喜和牌！</h3>
+                <p style="margin-bottom: 15px; color: #666;">
+                    您的牌型已经完成，可以进行翻副计算了
+                </p>
+                
+                <div style="margin: 15px 0;">
+                    <button id="copyToAnalysisBtn" 
+                            style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; margin: 5px; cursor: pointer;">
+                        📋 复制到翻副计算
+                    </button>
+                    <!-- <button onclick="scrollToAnalysis()" 
+                            style="background: #2196F3; color: white; border: none; padding: 10px 20px; border-radius: 4px; margin: 5px; cursor: pointer;">
+                        🔍 跳转到翻副计算
+                    </button> -->
+                </div>
+                
+                <div style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                    💡 提示：点击"复制到翻副计算"可以自动填充牌型数据
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="test-section" id="analysisSection">
+        <h2>翻副计算</h2>
+        <div>
+            <label>手牌: <input type="text" id="handInput" placeholder="例：123m456p789s1122z（13张）"
+                    onchange="updateTileDisplay()" /></label><br>
+            <label>和牌: <input type="text" id="winTileInput" placeholder="例：2z（1张）"
+                    onchange="updateTileDisplay()" /></label><br>
+            <label>副露: <input type="text" id="meldsInput" placeholder="例：123m,456p（可选）"
+                    onchange="updateTileDisplay()" /></label><br>
+
+            <div id="tileDisplay" class="tile-display"></div>
+
+            <h3>和牌条件:</h3>
+            <div id="win-conditions-analysis" class="win-conditions">
+                <!-- 和牌条件将由规则系统动态生成 -->
+            </div>
+
+            <h3>风牌设置:</h3>
+            <label>当前圈风: <select id="roundWind">
+                    <option value="east">东风</option>
+                    <option value="south">南风</option>
+                    <option value="west">西风</option>
+                    <option value="north">北风</option>
+                </select></label>
+            <label>和牌者门风: <select id="playerWind">
+                    <option value="east">东家</option>
+                    <option value="south">南家</option>
+                    <option value="west">西家</option>
+                    <option value="north">北家</option>
+                </select></label><br>
+
+            <button onclick="testHandAnalysis()">分析牌型</button>
+        </div>
+        <div id="analysisResult" class="result"></div>
+    </div>
+
+
+    <div class="test-section">
+        <h2>分数计算</h2>
+        <div>
+            <label>和牌者: <select id="winner">
+                    <option value="east">东家</option>
+                    <option value="south">南家</option>
+                    <option value="west">西家</option>
+                    <option value="north">北家</option>
+                </select></label><br>
+            <label>出铳者: <select id="payer">
+                    <option value="east">东家</option>
+                    <option value="south">南家</option>
+                    <option value="west">西家</option>
+                    <option value="north">北家</option>
+                </select></label><br>
+            <label>翻数: <input type="number" id="fanCount" min="0" value="1" /></label>
+            <label>副数: <input type="number" id="fuCount" min="0" value="20" /></label><br>
+            <label>和牌方式: <select id="winType">
+                    <option value="和牌">和牌</option>
+                    <option value="自摸">自摸</option>
+                </select></label><br>
+
+            <button onclick="testScoreCalculation()">计算分数</button>
+        </div>
+        <div id="scoreResult" class="result"></div>
+    </div>
+
+    <!-- 规则设置对话框 -->
+    <div id="rule-settings-dialog" class="modal" onclick="closeModalOnBackgroundClick(event, 'rule-settings-dialog')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="rule-settings-title">规则设置</h3>
+                <span class="close" onclick="closeModal('rule-settings-dialog')">&times;</span>
+            </div>
+            <div id="rule-settings-container" class="rule-settings">
+                <!-- 规则设置内容将通过JavaScript动态生成 -->
+            </div>
+            <div class="button-group">
+                <button onclick="saveRuleSettings()">保存</button>
+                <button onclick="closeModal('rule-settings-dialog')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 听牌详情对话框 -->
+    <div id="tenpai-detail-dialog" class="modal" onclick="closeModalOnBackgroundClick(event, 'tenpai-detail-dialog')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="tenpai-detail-title">听牌详情</h3>
+                <span class="close" onclick="closeModal('tenpai-detail-dialog')">&times;</span>
+            </div>
+            <div id="tenpai-detail-content">
+                <!-- 详情内容将在这里动态填充 -->
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeModal('tenpai-detail-dialog')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/mahjong-parser.js"></script>
+    <script src="js/shanten-calculator.js"></script>
+    <script src="js/rule-systems/base-rule.js"></script>
+    <script src="js/rule-systems/chinese-classical-mahjong-var.js"></script>
+    <script src="js/rule-systems/japanese-mahjong.js"></script>
+    <script src="js/rule-systems/hong-kong-mahjong.js"></script>
+    <script>
+        // 全局变量
+        let currentRuleSystem = null;
+        let mahjongParser = null;
+        let shantenCalculator = null;
+
+        // 定义规则系统容器
+        let availableRuleSystems = {};
+
+        // 显示错误信息的统一函数
+        function showErrorMessage(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hide');
+                
+                // 5秒后自动隐藏错误信息
+                setTimeout(() => {
+                    errorDiv.classList.add('hide');
+                }, 5000);
+            }
+        }
+
+        // 隐藏错误信息
+        function hideErrorMessage() {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.classList.add('hide');
+            }
+        }
+
+        // 显示听牌结果并隐藏向听结果
+        function showTenpaiResult() {
+            const tenpaiDiv = document.getElementById('tenpaiResult');
+            const shantenDiv = document.getElementById('shantenResult');
+            const winDiv = document.getElementById('winResult');
+            if (tenpaiDiv) tenpaiDiv.classList.remove('hide');
+            if (shantenDiv) shantenDiv.classList.add('hide');
+            if (winDiv) winDiv.classList.add('hide');
+            hideErrorMessage();
+        }
+
+        // 显示向听结果并隐藏听牌结果
+        function showShantenResult() {
+            const tenpaiDiv = document.getElementById('tenpaiResult');
+            const shantenDiv = document.getElementById('shantenResult');
+            const winDiv = document.getElementById('winResult');
+            if (tenpaiDiv) tenpaiDiv.classList.add('hide');
+            if (shantenDiv) shantenDiv.classList.remove('hide');
+            if (winDiv) winDiv.classList.add('hide');
+            
+            hideErrorMessage();
+        }
+
+        // 显示和牌结果并隐藏其他结果
+        function showWinResult() {
+            const tenpaiDiv = document.getElementById('tenpaiResult');
+            const shantenDiv = document.getElementById('shantenResult');
+            const winDiv = document.getElementById('winResult');
+            if (tenpaiDiv) tenpaiDiv.classList.add('hide');
+            if (shantenDiv) shantenDiv.classList.add('hide');
+            if (winDiv) winDiv.classList.remove('hide');
+            
+            hideErrorMessage();
+        }
+
+        // 显示和牌信息并引导用户跳转
+        function showWinMessage(hand, melds, winTile = null) {
+            // 显示和牌结果区域
+            showWinResult();
+            
+            // 准备自动填充的数据
+            const handInput = hand;
+            const winTileInput = winTile || '';
+            const meldsInput = melds || '';
+            
+            // 设置复制按钮的点击事件
+            const copyBtn = document.getElementById('copyToAnalysisBtn');
+            if (copyBtn) {
+                copyBtn.onclick = function() {
+                    copyToAnalysis(handInput, winTileInput, meldsInput);
+                };
+            }
+        }
+
+        // 复制牌型到翻副计算区域
+        function copyToAnalysis(hand, winTile, melds) {
+            // 移除摸牌部分，因为翻副计算需要13张手牌+1张和牌
+            let handFor13 = hand;
+            let winTileFor1 = winTile;
+            
+            // 如果没有独立的和牌，从14张手牌中分离出最后一张作为和牌
+            if (!winTile && hand.length > 0) {
+                const tiles = mahjongParser.parseHand(hand);
+                if (tiles.length === 14) {
+                    // 取最后一张作为和牌
+                    const lastTile = tiles[tiles.length - 1];
+                    winTileFor1 = tileObjectToString(lastTile);
+                    
+                    // 从手牌中移除最后一张
+                    tiles.pop();
+                    handFor13 = formatTilesToString(tiles);
+                }
+            }
+            
+            // 填充翻副计算区域
+            document.getElementById('handInput').value = handFor13;
+            document.getElementById('winTileInput').value = winTileFor1;
+            document.getElementById('meldsInput').value = melds;
+            
+            // 更新翻副计算区域的显示
+            updateTileDisplay();
+            
+            // 显示成功提示
+            showNotification('牌型已复制到翻副计算区域');
+            
+            // 跳转到翻副计算区域
+            scrollToAnalysis();
+        }
+        
+        // 跳转到翻副计算区域
+        function scrollToAnalysis() {
+            const analysisSection = document.getElementById('analysisSection');
+            if (analysisSection) {
+                analysisSection.scrollIntoView({ behavior: 'smooth' });
+                // 高亮显示
+                analysisSection.style.backgroundColor = '#fff3cd';
+                setTimeout(() => {
+                    analysisSection.style.backgroundColor = '';
+                }, 2000);
+            }
+        }
+
+        // 隐藏所有结果区域并显示错误信息
+        function showErrorAndHideResults(message) {
+            const tenpaiDiv = document.getElementById('tenpaiResult');
+            const shantenDiv = document.getElementById('shantenResult');
+            const winDiv = document.getElementById('winResult');
+            if (tenpaiDiv) tenpaiDiv.classList.add('hide');
+            if (shantenDiv) shantenDiv.classList.add('hide');
+            if (winDiv) winDiv.classList.add('hide');
+            
+            showErrorMessage(message);
+        }
+
+        // 麻将牌Unicode映射
+        const tileUnicodeMap = {
+            // 万字牌
+            '1m': '🀇', '2m': '🀈', '3m': '🀉', '4m': '🀊', '5m': '🀋',
+            '6m': '🀌', '7m': '🀍', '8m': '🀎', '9m': '🀏',
+            // 筒子牌
+            '1p': '🀙', '2p': '🀚', '3p': '🀛', '4p': '🀜', '5p': '🀝',
+            '6p': '🀞', '7p': '🀟', '8p': '🀠', '9p': '🀡',
+            // 条子牌
+            '1s': '🀐', '2s': '🀑', '3s': '🀒', '4s': '🀓', '5s': '🀔',
+            '6s': '🀕', '7s': '🀖', '8s': '🀗', '9s': '🀘',
+            // 字牌
+            '1z': '🀀', '2z': '🀁', '3z': '🀂', '4z': '🀃', // 东南西北
+            '5z': '🀄︎', '6z': '🀅', '7z': '🀆',              // 中发白
+            // 花牌 - 四花 (使用f标识符，1-4编号)
+            '1f': '🀢', '2f': '🀣', '3f': '🀥', '4f': '🀤', // 梅兰菊竹
+            // 花牌 - 四季 (使用f标识符，5-8编号)
+            '5f': '🀦', '6f': '🀧', '7f': '🀨', '8f': '🀩'  // 春夏秋冬
+        };
+
+        // 初始化
+        function initializeApp() {
+            // 初始化解析器
+            mahjongParser = new MahjongParser();
+
+            // 初始化向听数计算器
+            try {
+                shantenCalculator = new ShantenCalculator();
+                console.log('向听数计算器初始化成功');
+            } catch (error) {
+                console.error('向听数计算器初始化失败:', error);
+            }
+
+            // 初始化规则系统
+            initializeRuleSystems();
+
+            // 加载之前选择的规则（如果有）
+            const savedRule = localStorage.getItem('analyse-tool-rule');
+            if (savedRule && availableRuleSystems[savedRule]) {
+                document.getElementById('ruleSelector').value = savedRule;
+            }
+
+            // 切换到选中的规则
+            switchRule();
+            updateTileDisplay();
+            updateTenpaiDisplay();
+            
+            // 确保所有结果区域初始时隐藏
+            document.getElementById('shantenResult').classList.add('hide');
+            document.getElementById('winResult').classList.add('hide');
+            
+            // 添加测试按钮（开发时使用）
+            //addTestButton();
+        }
+
+        // 显示规则设置对话框
+        function showRuleSettingsDialog() {
+            if (!currentRuleSystem) {
+                alert('请先选择规则系统');
+                return;
+            }
+
+            // 获取规则设置定义
+            const settings = currentRuleSystem.getSettingsDefinition();
+            const container = document.getElementById('rule-settings-container');
+            const dialogTitle = document.getElementById('rule-settings-title');
+
+            // 设置对话框标题
+            dialogTitle.textContent = `${currentRuleSystem.name} - 规则设置`;
+
+            // 清空容器
+            container.innerHTML = '';
+
+            // 生成设置界面
+            Object.keys(settings).forEach(groupName => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'setting-group';
+                groupDiv.innerHTML = `<h4>${groupName}</h4>`;
+
+                Object.keys(settings[groupName]).forEach(settingKey => {
+                    const setting = settings[groupName][settingKey];
+                    const currentValue = currentRuleSystem.settings[settingKey] !== undefined ?
+                        currentRuleSystem.settings[settingKey] : setting.default;
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'setting-item';
+
+                    let inputHTML = '';
+                    if (setting.type === 'boolean') {
+                        inputHTML = `<input type="checkbox" id="setting-${settingKey}" ${currentValue ? 'checked' : ''}>`;
+                    } else if (setting.type === 'number') {
+                        inputHTML = `<input type="number" id="setting-${settingKey}" value="${currentValue}" 
+                            min="${setting.min || 0}" max="${setting.max || 9999}" step="1">`;
+                    } else if (setting.type === 'select') {
+                        inputHTML = `<select id="setting-${settingKey}">`;
+                        setting.options.forEach(option => {
+                            inputHTML += `<option value="${option.value}" ${option.value === currentValue ? 'selected' : ''}>${option.label}</option>`;
+                        });
+                        inputHTML += '</select>';
+                    }
+
+                    itemDiv.innerHTML = `<label>${setting.label}</label>${inputHTML}`;
+                    groupDiv.appendChild(itemDiv);
+                });
+
+                container.appendChild(groupDiv);
+            });
+
+            // 显示对话框
+            document.getElementById('rule-settings-dialog').style.display = 'block';
+        }
+
+        // 保存规则设置
+        function saveRuleSettings() {
+            if (!currentRuleSystem || !currentRuleSystem.getSettingsDefinition) {
+                return;
+            }
+
+            const settings = currentRuleSystem.getSettingsDefinition();
+            const newSettings = {};
+
+            // 收集所有设置的值
+            Object.keys(settings).forEach(groupName => {
+                Object.keys(settings[groupName]).forEach(settingKey => {
+                    const element = document.getElementById(`setting-${settingKey}`);
+                    if (element) {
+                        if (element.type === 'checkbox') {
+                            newSettings[settingKey] = element.checked;
+                        } else if (element.type === 'number') {
+                            newSettings[settingKey] = parseInt(element.value);
+                        } else if (element.tagName === 'SELECT') {
+                            newSettings[settingKey] = element.value;
+                        }
+                    }
+                });
+            });
+
+            // 更新规则系统设置
+            if (currentRuleSystem.updateSettings) {
+                currentRuleSystem.updateSettings(newSettings);
+
+                // 保存到本地存储，格式为 "rule-settings-{规则系统ID}"
+                const ruleId = document.getElementById('ruleSelector').value;
+                localStorage.setItem(`rule-settings-${ruleId}`, JSON.stringify(currentRuleSystem.settings));
+            }
+
+            // 关闭对话框
+            closeModal('rule-settings-dialog');
+
+            // 显示成功消息
+            showResult('ruleInfo', '规则设置已保存', 'success');
+
+            // 重新计算当前分析结果（如果有）
+            setTimeout(() => {
+                if (document.getElementById('analysisResult').innerHTML) {
+                    testHandAnalysis();
+                }
+                if (document.getElementById('tenpaiResult').innerHTML) {
+                    calculateTenpai();
+                }
+            }, 100);
+        }
+
+        // 关闭模态对话框
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 点击背景关闭模态对话框
+        function closeModalOnBackgroundClick(event, modalId) {
+            if (event.target === event.currentTarget) {
+                closeModal(modalId);
+            }
+        }
+
+        // 切换规则系统
+        function switchRule() {
+            const ruleSelector = document.getElementById('ruleSelector');
+            if (!ruleSelector) return;
+
+            const ruleType = ruleSelector.value;
+
+            // 检查所选规则是否存在
+            if (!availableRuleSystems[ruleType]) {
+                console.error('规则系统未找到:', ruleType);
+                return;
+            }
+
+            // 设置当前规则系统
+            currentRuleSystem = availableRuleSystems[ruleType];
+
+            // 加载保存的规则设置
+            const savedSettings = localStorage.getItem(`rule-settings-${ruleType}`);
+            if (savedSettings) {
+                try {
+                    const settings = JSON.parse(savedSettings);
+                    currentRuleSystem.updateSettings(settings);
+                } catch (error) {
+                    console.error('加载规则设置失败:', error);
+                }
+            }
+
+            // 保存规则选择
+            localStorage.setItem('analyse-tool-rule', ruleType);
+
+            displayRuleInfo();
+            updateWinConditions();
+
+            // 重新计算当前分析结果（如果有）
+            setTimeout(() => {
+                if (document.getElementById('analysisResult').innerHTML) {
+                    testHandAnalysis();
+                }
+                if (document.getElementById('tenpaiResult').innerHTML) {
+                    calculateTenpai();
+                }
+            }, 100);
+        }
+
+        // 显示规则信息
+        function displayRuleInfo() {
+            if (!currentRuleSystem) return;
+
+            const info = document.getElementById('ruleInfo');
+            const yaku = currentRuleSystem.getSupportedYaku ? currentRuleSystem.getSupportedYaku() : [];
+            const rules = currentRuleSystem.getSpecialRules ? currentRuleSystem.getSpecialRules() : [];
+
+            // 显示重要规则设置
+            let settingsInfo = '';
+            if (currentRuleSystem.settings) {
+                const settings = currentRuleSystem.settings;
+
+                if (settings.initialScore !== undefined) {
+                    settingsInfo += `初始分数: ${settings.initialScore} `;
+                }
+
+                if (settings.manganPoints !== undefined) {
+                    settingsInfo += `满贯点数: ${settings.manganPoints} `;
+                }
+
+                // 显示特殊规则
+                if (settings.includeFlowers !== undefined) {
+                    settingsInfo += `花牌: ${settings.includeFlowers ? '开启' : '关闭'} `;
+                }
+                if (settings.redDora !== undefined) {
+                    settingsInfo += `赤宝牌: ${settings.redDora ? '开启' : '关闭'} `;
+                }
+            }
+
+            info.innerHTML = `
+                <strong>${currentRuleSystem.name}</strong><br>
+                <small>支持 ${yaku.length} 种役种，${rules.length} 条特殊规则</small>
+                <div style="margin-top: 5px; font-size: 0.9em;">${settingsInfo}</div>
+            `;
+        }
+
+        // 将牌型字符串转换为Unicode显示
+        function convertTilesToUnicode(tileString) {
+            if (!tileString) return '';
+
+            let result = [];
+            let mahjongParser = window.mahjongParser || new MahjongParser();
+            if (mahjongParser) {
+                try {
+                    const tiles = mahjongParser.parseHand(tileString);
+                    return tiles.map(tile => {
+                        let tileKey;
+                        if (tile.suit === 'flower') {
+                            tileKey = `${tile.number}f`;
+                        } else if (tile.suit === 'honor') {
+                            tileKey = `${tile.number}z`;
+                        } else {
+                            const suitChar = tile.suit === 'man' ? 'm' :
+                                tile.suit === 'pin' ? 'p' :
+                                    tile.suit === 'sou' ? 's' : '?';
+                            tileKey = `${tile.number}${suitChar}`;
+                        }
+                        return tileUnicodeMap[tileKey] || tileKey;
+                    }).join('');
+                } catch (error) {
+                    console.warn('Parser failed:', error);
+                }
+            }
+
+            return result.join(' ');
+        }
+
+        // 更新牌型显示
+        function updateTileDisplay() {
+            const hand = document.getElementById('handInput').value;
+            const winTile = document.getElementById('winTileInput').value;
+            const melds = document.getElementById('meldsInput').value;
+
+            const displayDiv = document.getElementById('tileDisplay');
+
+            let displayContent = '';
+            if (hand) {
+                displayContent += `<div class="tile-section"><span class="tile-label">手牌:</span>${convertTilesToUnicode(hand)}</div>`;
+            }
+            if (winTile) {
+                displayContent += `<div class="tile-section"><span class="tile-label">和牌:</span>${convertTilesToUnicode(winTile)}</div>`;
+            }
+            if (melds) {
+                const meldGroups = melds.split(',');
+                const meldDisplay = meldGroups.map(meld => convertTilesToUnicode(meld.trim())).join(' | ');
+                displayContent += `<div class="tile-section"><span class="tile-label">副露:</span>${meldDisplay}</div>`;
+            }
+
+            displayDiv.innerHTML = displayContent || '<span style="color: #999;">请输入牌型以查看Unicode显示</span>';
+        }
+
+        // 更新听牌显示
+        function updateTenpaiDisplay() {
+            const hand = document.getElementById('tenpaiHandInput').value;
+            const melds = document.getElementById('tenpaiMeldsInput').value;
+            const inTile = document.getElementById('tenpaiInInput').value;
+
+            const displayDiv = document.getElementById('tenpaiTileDisplay');
+
+            let displayContent = '';
+            if (hand) {
+                displayContent += `<div class="tile-section"><span class="tile-label">手牌:</span>${convertTilesToUnicode(hand)}</div>`;
+            }
+            if (melds) {
+                const meldGroups = melds.split(',');
+                const meldDisplay = meldGroups.map(meld => convertTilesToUnicode(meld.trim())).join(' | ');
+                displayContent += `<div class="tile-section"><span class="tile-label">副露:</span>${meldDisplay}</div>`;
+            }
+            if (inTile) {
+                displayContent += `<div class="tile-section"><span class="tile-label">摸牌:</span>${convertTilesToUnicode(inTile)}</div>`;
+            }
+
+            displayDiv.innerHTML = displayContent || '<span style="color: #999;">请输入牌型以查看Unicode显示</span>';
+        }
+
+        // 显示听牌结果
+        function displayTenpaiResults(results) {
+            const resultDiv = document.getElementById('tenpaiResult');
+
+            if (results.length === 0) {
+                showResult('tenpaiResult', '未发现有效听牌', 'error');
+                return;
+            }
+
+            // 按翻数排序（降序）
+            results.sort((a, b) => b.fan - a.fan);
+
+            let html = `
+                <h4>听牌结果 (共${results.length}张):</h4>
+                <div class="tenpai-grid">
+            `;
+
+            results.forEach(result => {
+                const tileUnicode = convertTilesToUnicode(result.winTile);
+                const specialType = currentRuleSystem.getSpecialFanType ? currentRuleSystem.getSpecialFanType(result.fan) : null;
+                const fanDisplay = specialType ? specialType.name : `${result.fan}翻`;
+
+                html += `
+                    <div class="tenpai-item" onclick="showTenpaiDetail('${result.winTile}', ${JSON.stringify(result).replace(/"/g, '&quot;')})">
+                        <div class="tenpai-tile">${tileUnicode} (${result.winTile})</div>
+                        <div class="tenpai-value">${fanDisplay} ${result.fu}副</div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = html;
+        }
+
+        // 显示听牌详情（新版，支持详细信息）
+        function showTenpaiDetailNew(index, resultData) {
+            const result = typeof resultData === 'string' ? JSON.parse(resultData) : resultData;
+
+            // 构建翻数详情
+            let fanDetailsHtml = '';
+            if (result.fanDetails && result.fanDetails.length > 0) {
+                fanDetailsHtml = `
+                    <div class="tenpai-detail-section">
+                        <h4>翻数明细</h4>
+                        <div class="tenpai-detail-list">
+                            ${result.fanDetails.map(detail => {
+                                const fanDisplay = typeof detail.fan === 'number' ? `${detail.fan}翻` : detail.fan;
+                                return `
+                                    <div class="tenpai-detail-item">
+                                        <strong>${detail.name}</strong>: ${fanDisplay}
+                                        ${detail.description ? `<div class="tenpai-detail-description">${detail.description}</div>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 构建副数详情
+            let fuDetailsHtml = '';
+            if (result.fuDetails && result.fuDetails.length > 0) {
+                fuDetailsHtml = `
+                    <div class="tenpai-detail-section">
+                        <h4>副数明细</h4>
+                        <div class="tenpai-detail-list" style="border-left-color: #007cba;">
+                            ${result.fuDetails.map(detail => {
+                                const fuDisplay = typeof detail.fu === 'number' ? `${detail.fu}副` : detail.fu;
+                                return `
+                                    <div class="tenpai-detail-item">
+                                        <strong>${detail.name}</strong>: ${fuDisplay}
+                                        ${detail.description ? `<div class="tenpai-detail-description">${detail.description}</div>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const specialType = currentRuleSystem.getSpecialFanType ? currentRuleSystem.getSpecialFanType(result.fan) : null;
+            const fanDisplay = specialType ? specialType.name : `${result.fan}翻`;
+            
+            // 更新对话框标题
+            document.getElementById('tenpai-detail-title').textContent = `听牌详情 - ${convertTilesToUnicode(result.tile)} (${result.tile})`;
+            
+            // 更新对话框内容
+            document.getElementById('tenpai-detail-content').innerHTML = `
+                <div class="tenpai-detail-header">
+                    <div class="tenpai-detail-tile">${convertTilesToUnicode(result.tile)}</div>
+                    <div class="tenpai-detail-summary">${fanDisplay} ${result.fu}副</div>
+                    <div class="tenpai-detail-points">${result.points}点</div>
+                </div>
+                
+                ${fanDetailsHtml}
+                ${fuDetailsHtml}
+                
+                ${(!fanDetailsHtml && !fuDetailsHtml) ? '<div class="tenpai-detail-section"><p style="text-align: center; color: #666;">无详细信息</p></div>' : ''}
+            `;
+
+            // 显示对话框
+            document.getElementById('tenpai-detail-dialog').style.display = 'block';
+        }
+
+        // 显示听牌详情（旧版，保持兼容性）
+        function showTenpaiDetail(winTile, resultData) {
+            const result = typeof resultData === 'string' ? JSON.parse(resultData) : resultData;
+
+            let detailHtml = `
+                <h4>${convertTilesToUnicode(winTile)} (${winTile}) 详情:</h4>
+                <p><strong>翻数:</strong> ${result.fan} <strong>副数:</strong> ${result.fu}</p>
+            `;
+
+            if (result.fanDetails && result.fanDetails.length > 0) {
+                detailHtml += '<h5>翻数来源:</h5><ul>';
+                result.fanDetails.forEach(detail => {
+                    detailHtml += `<li>${detail.name}: ${detail.fan}翻 (${detail.description})</li>`;
+                });
+                detailHtml += '</ul>';
+            }
+
+            if (result.fuDetails && result.fuDetails.length > 0) {
+                detailHtml += '<h5>副数来源:</h5><ul>';
+                result.fuDetails.forEach(detail => {
+                    detailHtml += `<li>${detail.name}: ${detail.fu}副 (${detail.description})</li>`;
+                });
+                detailHtml += '</ul>';
+            }
+
+            alert(detailHtml.replace(/<[^>]*>/g, '\n').replace(/&quot;/g, '"'));
+        }
+
+        // 计算并显示向听数
+        function calculateAndDisplayShanten(hand, melds, conditions) {
+            if (!shantenCalculator) {
+                showErrorAndHideResults('向听数计算器未初始化');
+                return;
+            }
+
+            try {
+                // 检查是否有摸牌（14张牌）
+                const inTile = document.getElementById('tenpaiInInput').value.trim();
+                const handTiles = mahjongParser.parseHand(hand);
+                const totalTiles = handTiles.length + (melds ? mahjongParser.parseHand(melds).length : 0);
+                
+                console.log('计算向听数:', hand, melds, inTile, '总牌数:', totalTiles);
+                
+                if (inTile || totalTiles === 14) {
+                    // 14张牌的情况 - 显示打出每张牌后的向听数
+                    calculateAndDisplayCurrentHandImprovements(hand, inTile, melds, conditions);
+                } else if (totalTiles === 13) {
+                    // 13张牌的情况 - 显示摸牌推进方案
+                    const shantenResult = shantenCalculator.calculate(hand, melds);
+                    console.log('向听数计算结果:', shantenResult);
+                    
+                    // 显示向听结果
+                    showShantenResult();
+                    document.getElementById('shantenNumber').textContent = shantenResult.shanten;
+
+                    if (shantenResult.improvements && shantenResult.improvements.length > 0) {
+                        displayDrawTileImprovements(shantenResult.improvements, shantenResult.shanten, hand, melds);
+                    } else {
+                        const replacePlansDiv = document.getElementById('replacePlans');
+                        replacePlansDiv.innerHTML = '<p style="color: #666; text-align: center;">暂无优化建议</p>';
+                    }
+                } else {
+                    throw new Error(`无效牌数: ${totalTiles}张牌，必须为13或14张`);
+                }
+
+            } catch (error) {
+                console.error('向听数计算错误:', error);
+                showErrorAndHideResults(`计算错误: ${error.message}`);
+            }
+        }
+
+        // 计算并显示当前手牌（14张）的改进方案
+        function calculateAndDisplayCurrentHandImprovements(hand, inTile, melds, conditions) {
+            try {
+                // 构建完整的14张手牌
+                let fullHand = hand;
+                if (inTile) {
+                    fullHand = hand + inTile;
+                }
+                
+                const handTiles = mahjongParser.parseHand(fullHand);
+                if (handTiles.length !== 14) {
+                    throw new Error(`手牌应为14张，当前为${handTiles.length}张`);
+                }
+                
+                // 计算当前向听数
+                const currentShanten = shantenCalculator.calculate(fullHand, melds);
+                
+                // 检查是否已经和牌（向听数为-1）
+                if (currentShanten.shanten === -1) {
+                    showWinMessage(fullHand, melds, inTile);
+                    return;
+                }
+                
+                // 显示向听结果
+                showShantenResult();
+                document.getElementById('shantenNumber').textContent = currentShanten.shanten;
+
+                // 现在改用向听数计算器返回的改进方案，只要格式转换
+                // 从 {discard: '4p', tiles: [{ tile: '5p', shanten: 1 }, ...]} 转换为 { discardTile, resultingHand, resultingShanten, improvements }
+                const discardOptions = currentShanten.improvements.map(improvement => {
+                    return {
+                        discardTile: improvement.discard,
+                        resultingHand: removeOneTileFromHand(fullHand, improvement.discard),
+                        resultingShanten: improvement.shanten,
+                        improvements: improvement.tiles || []
+                    };
+                });
+                
+                // 按向听数排序，相同向听数时按剩余枚数排序
+                discardOptions.sort((a, b) => {
+                    // 首先按向听数排序（越小越好）
+                    if (a.resultingShanten !== b.resultingShanten) {
+                        return a.resultingShanten - b.resultingShanten;
+                    }
+
+                    // 计算每个选项的总剩余枚数
+                    const melds = document.getElementById('tenpaiMeldsInput').value;
+                    
+                    let aTotalRemaining = 0;
+                    if (a.resultingShanten === 0) {
+                        // 听牌情况：计算听牌枚数
+                        const aTenpaiTiles = calculateAllTenpaiTiles(a.resultingHand, '', getTenpaiConditions());
+                        const aUniqueTenpaiTiles = [...new Set(aTenpaiTiles.map(t => t.tile || t.winTile))];
+                        for (const tile of aUniqueTenpaiTiles) {
+                            if (tile) {
+                                aTotalRemaining += calculateRemainingTiles(tile, a.resultingHand, melds);
+                            }
+                        }
+                    } else {
+                        // 非听牌情况：计算进张枚数
+                        for (const improvement of a.improvements) {
+                            aTotalRemaining += calculateRemainingTiles(improvement.tile, a.resultingHand, melds);
+                        }
+                    }
+                    
+                    let bTotalRemaining = 0;
+                    if (b.resultingShanten === 0) {
+                        // 听牌情况：计算听牌枚数
+                        const bTenpaiTiles = calculateAllTenpaiTiles(b.resultingHand, '', getTenpaiConditions());
+                        const bUniqueTenpaiTiles = [...new Set(bTenpaiTiles.map(t => t.tile || t.winTile))];
+                        for (const tile of bUniqueTenpaiTiles) {
+                            if (tile) {
+                                bTotalRemaining += calculateRemainingTiles(tile, b.resultingHand, melds);
+                            }
+                        }
+                    } else {
+                        // 非听牌情况：计算进张枚数
+                        for (const improvement of b.improvements) {
+                            bTotalRemaining += calculateRemainingTiles(improvement.tile, b.resultingHand, melds);
+                        }
+                    }
+
+                    // 按总剩余枚数排序（越多越好）
+                    if (aTotalRemaining !== bTotalRemaining) {
+                        return bTotalRemaining - aTotalRemaining;
+                    }
+
+                    // 剩余枚数相同时，按改进方案的数量排序（越多越好）
+                    if (a.improvements.length !== b.improvements.length) {
+                        return b.improvements.length - a.improvements.length;
+                    }
+                    
+                    // 最后按花色和数字排序
+                    const aParsed = parseTileForSort(a.discardTile);
+                    const bParsed = parseTileForSort(b.discardTile);
+                    
+                    // 花色排序优先级：m < p < s < z < f
+                    const suitOrder = { 'm': 1, 'p': 2, 's': 3, 'z': 4, 'f': 5 };
+                    const aSuitOrder = suitOrder[aParsed.suit] || 6;
+                    const bSuitOrder = suitOrder[bParsed.suit] || 6;
+                    
+                    if (aSuitOrder !== bSuitOrder) {
+                        return aSuitOrder - bSuitOrder;
+                    }
+                    
+                    // 花色相同时按数字排序
+                    return aParsed.number - bParsed.number;
+                });
+                
+                displayCurrentHandImprovements(discardOptions, currentShanten.shanten);
+                
+            } catch (error) {
+                console.error('当前手牌向听计算错误:', error);
+                showErrorAndHideResults(`计算错误: ${error.message}`);
+            }
+        }
+
+        // 显示当前手牌的打牌选择
+        function displayCurrentHandImprovements(discardOptions, currentShanten) {
+            const replacePlansDiv = document.getElementById('replacePlans');
+            
+            if (!discardOptions || discardOptions.length === 0) {
+                replacePlansDiv.innerHTML = '<p style="color: #666; text-align: center;">无可用选择</p>';
+                return;
+            }
+
+            // 找到最优向听数
+            const bestShanten = Math.min(...discardOptions.map(o => o.resultingShanten));
+            
+            // 计算每个选项的总剩余枚数，找到最大值
+            const melds = document.getElementById('tenpaiMeldsInput').value;
+            let bestRemainingTiles = 0;
+            
+            discardOptions.forEach(option => {
+                if (option.resultingShanten === bestShanten) {
+                    let totalRemaining = 0;
+                    if (option.resultingShanten === 0) {
+                        // 听牌情况：计算听牌枚数
+                        const tenpaiTiles = calculateAllTenpaiTiles(option.resultingHand, '', getTenpaiConditions());
+                        const uniqueTenpaiTiles = [...new Set(tenpaiTiles.map(t => t.tile || t.winTile))];
+                        for (const tile of uniqueTenpaiTiles) {
+                            if (tile) {
+                                totalRemaining += calculateRemainingTiles(tile, option.resultingHand, melds);
+                            }
+                        }
+                    } else {
+                        // 非听牌情况：计算进张枚数
+                        for (const improvement of option.improvements) {
+                            totalRemaining += calculateRemainingTiles(improvement.tile, option.resultingHand, melds);
+                        }
+                    }
+                    bestRemainingTiles = Math.max(bestRemainingTiles, totalRemaining);
+                }
+            });
+            
+            let html = `
+                <div class="shanten-tile-grid">
+            `;
+            
+            discardOptions.forEach(option => {
+                const discardUnicode = convertTilesToUnicode(option.discardTile);
+                const shantenChange = option.resultingShanten - currentShanten;
+                
+                // 计算当前选项的剩余枚数
+                let currentRemainingTiles = 0;
+                if (option.resultingShanten === 0) {
+                    const tenpaiTiles = calculateAllTenpaiTiles(option.resultingHand, '', getTenpaiConditions());
+                    const uniqueTenpaiTiles = [...new Set(tenpaiTiles.map(t => t.tile || t.winTile))];
+                    for (const tile of uniqueTenpaiTiles) {
+                        if (tile) {
+                            currentRemainingTiles += calculateRemainingTiles(tile, option.resultingHand, melds);
+                        }
+                    }
+                } else {
+                    for (const improvement of option.improvements) {
+                        currentRemainingTiles += calculateRemainingTiles(improvement.tile, option.resultingHand, melds);
+                    }
+                }
+                
+                // 判断是否为最优选择（最优向听数且最多剩余枚数）
+                const isOptimal = option.resultingShanten === bestShanten && currentRemainingTiles === bestRemainingTiles;
+                
+                // 计算进张信息（使用已计算的剩余枚数）
+                let drawInfo = '';
+                if (option.resultingShanten === 0) {
+                    // 如果已经听牌，显示听牌信息
+                    const tenpaiTiles = calculateAllTenpaiTiles(option.resultingHand, '', getTenpaiConditions());
+                    drawInfo = `听${tenpaiTiles.length}种牌(${currentRemainingTiles}枚)`;
+                } else if (option.improvements.length > 0) {
+                    // 显示进张信息
+                    drawInfo = `${option.improvements.length}种进张(${currentRemainingTiles}枚)`;
+                } else {
+                    drawInfo = '无进张';
+                }
+                
+                html += `
+                    <div class="shanten-tile discard-tile ${isOptimal ? 'optimal' : ''}" 
+                         onclick="applyDiscardChoice('${option.discardTile}', '${option.resultingHand}')">
+                        <div class="tile-action-indicator">打出</div>
+                        <div class="tile-display-large">${discardUnicode}</div>
+                        <div class="tile-info">
+                            ${option.resultingShanten}向听
+                            ${shantenChange === 0 ? '' : 
+                              shantenChange > 0 ? ` (+${shantenChange})` : ` (${shantenChange})`}
+                        </div>
+                        <div class="tile-details">
+                            ${drawInfo}
+                            ${isOptimal ? '<br>⭐ 最优' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            replacePlansDiv.innerHTML = html;
+        }
+
+        // 显示摸牌推进方案（13张牌情况）
+        function displayDrawTileImprovements(improvements, currentShanten, hand, melds) {
+            const replacePlansDiv = document.getElementById('replacePlans');
+            
+            if (!improvements || improvements.length === 0) {
+                replacePlansDiv.innerHTML = '<p style="color: #666; text-align: center;">暂无优化建议</p>';
+                return;
+            }
+
+            // 收集所有可能的摸牌
+            const drawTileOptions = new Map();
+            
+            improvements.forEach(improvement => {
+                improvement.tiles.forEach(tile => {
+                    if (!drawTileOptions.has(tile.tile)) {
+                        drawTileOptions.set(tile.tile, []);
+                    }
+                    drawTileOptions.get(tile.tile).push({
+                        discard: improvement.discard,
+                        shanten: tile.shanten
+                    });
+                });
+            });
+            
+            // 找到最优向听数和最多剩余枚数
+            let bestShanten = currentShanten;
+            let bestRemainingCount = 0;
+            
+            for (const [drawTile, options] of drawTileOptions.entries()) {
+                const minShanten = Math.min(...options.map(o => o.shanten));
+                bestShanten = Math.min(bestShanten, minShanten);
+                
+                // 如果是最优向听数，计算剩余枚数
+                if (minShanten === bestShanten) {
+                    const remainingCount = calculateRemainingTiles(drawTile, hand, melds);
+                    bestRemainingCount = Math.max(bestRemainingCount, remainingCount);
+                }
+            }
+            
+            let html = `
+                <div class="shanten-tile-grid">
+            `;
+            
+            // 按向听数和剩余枚数排序显示摸牌选择
+            const sortedDrawTiles = [...drawTileOptions.keys()].sort((a, b) => {
+                const aOptions = drawTileOptions.get(a);
+                const bOptions = drawTileOptions.get(b);
+                const aBestShanten = Math.min(...aOptions.map(o => o.shanten));
+                const bBestShanten = Math.min(...bOptions.map(o => o.shanten));
+                
+                // 首先按向听数排序（越小越好）
+                if (aBestShanten !== bBestShanten) {
+                    return aBestShanten - bBestShanten;
+                }
+                
+                // 向听数相同时，按剩余枚数排序（越多越好）
+                const aRemainingCount = calculateRemainingTiles(a, hand, melds);
+                const bRemainingCount = calculateRemainingTiles(b, hand, melds);
+                
+                if (aRemainingCount !== bRemainingCount) {
+                    return bRemainingCount - aRemainingCount;
+                }
+                
+                // 最后按花色和数字排序
+                return sortTilesBySuitAndNumber(a, b);
+            });
+            
+            sortedDrawTiles.forEach(drawTile => {
+                const drawUnicode = convertTilesToUnicode(drawTile);
+                const options = drawTileOptions.get(drawTile);
+                
+                // 找到这张摸牌的最优选择
+                const bestOption = options.reduce((best, current) => 
+                    current.shanten < best.shanten ? current : best
+                );
+                
+                const shantenReduction = currentShanten - bestOption.shanten;
+                
+                // 计算该摸牌的剩余枚数
+                const remainingCount = calculateRemainingTiles(drawTile, hand, melds);
+                
+                // 判断是否为最优选择（最优向听数且最多剩余枚数）
+                const isOptimal = bestOption.shanten === bestShanten && remainingCount === bestRemainingCount;
+                
+                html += `
+                    <div class="shanten-tile draw-tile ${isOptimal ? 'optimal' : ''}" 
+                         onclick="applyDrawTileChoice('${drawTile}', '${hand}', '${melds}')">
+                        <div class="tile-action-indicator">摸入</div>
+                        <div class="tile-display-large">${drawUnicode}</div>
+                        <div class="tile-info">
+                            ${bestOption.shanten}向听
+                            ${shantenReduction > 0 ? ` (-${shantenReduction})` : ''}
+                        </div>
+                        <div class="tile-details">
+                            剩余${remainingCount}枚
+                            ${isOptimal ? '<br>⭐ 最可能' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            replacePlansDiv.innerHTML = html;
+        }
+
+        // 处理点击事件的辅助函数
+        function applyDiscardChoice(discardTile, resultingHand) {
+            // 在14张牌模式下，更新手牌输入并清空摸牌输入
+            document.getElementById('tenpaiHandInput').value = resultingHand;
+            document.getElementById('tenpaiInInput').value = '';
+            
+            // 更新显示并重新计算
+            updateTenpaiDisplay();
+            calculateTenpai();
+            
+            showNotification(`已打出: ${convertTilesToUnicode(discardTile)}`);
+        }
+
+        function applyDrawTileChoice(drawTile, originalHand, melds) {
+            // 在13张牌模式下，设置摸牌并转换为14张牌模式
+            document.getElementById('tenpaiInInput').value = drawTile;
+            
+            // 更新显示
+            updateTenpaiDisplay();
+            
+            showNotification(`摸入: ${convertTilesToUnicode(drawTile)}`);
+            
+            // 重新计算（现在是14张牌模式）
+            setTimeout(() => calculateTenpai(), 100);
+        }
+
+        // 工具函数
+        function getUniqueTilesFromHand(handTiles) {
+            const uniqueTiles = [];
+            const seen = new Set();
+            
+            for (const tile of handTiles) {
+                const tileString = tileObjectToString(tile);
+                if (!seen.has(tileString)) {
+                    seen.add(tileString);
+                    uniqueTiles.push(tile);
+                }
+            }
+            
+            return uniqueTiles;
+        }
+
+        // 计算剩余牌数
+        function calculateRemainingTiles(tileString, currentHand, melds) {
+            try {
+                // 每种牌的总数量（标准麻将）
+                const totalCount = 4;
+                
+                // 解析当前手牌和副露中的所有牌
+                const handTiles = mahjongParser.parseHand(currentHand);
+                const meldTiles = melds ? mahjongParser.parseHand(melds) : [];
+                const allUsedTiles = [...handTiles, ...meldTiles];
+                
+                // 计算目标牌在已使用牌中的数量
+                let usedCount = 0;
+                const targetTile = mahjongParser.parseHand(tileString)[0];
+                
+                for (const tile of allUsedTiles) {
+                    if (tile.suit === targetTile.suit && tile.number === targetTile.number) {
+                        usedCount++;
+                    }
+                }
+                
+                return Math.max(0, totalCount - usedCount);
+            } catch (error) {
+                console.warn('计算剩余牌数失败:', error);
+                return 0;
+            }
+        }
+
+        function tileObjectToString(tile) {
+            const suitMap = {
+                'man': 'm',
+                'pin': 'p',
+                'sou': 's',
+                'honor': 'z',
+                'flower': 'f'
+            };
+            return `${tile.number}${suitMap[tile.suit] || ''}`;
+        }
+
+        function removeOneTileFromHand(handString, tileToRemove) {
+            const handTiles = mahjongParser.parseHand(handString);
+            
+            // 找到并移除第一个匹配的牌
+            for (let i = 0; i < handTiles.length; i++) {
+                if (tileObjectToString(handTiles[i]) === tileToRemove) {
+                    handTiles.splice(i, 1);
+                    break;
+                }
+            }
+            
+            // 重新组装手牌字符串
+            return formatTilesToString(handTiles);
+        }
+
+        function formatTilesToString(tiles) {
+            // 按花色分组
+            const groups = {
+                man: [],
+                pin: [],
+                sou: [],
+                honor: [],
+                flower: []
+            };
+            
+            tiles.forEach(tile => {
+                if (groups[tile.suit]) {
+                    groups[tile.suit].push(tile.number);
+                }
+            });
+            
+            // 对每种花色内的牌进行排序
+            for (const suit in groups) {
+                groups[suit].sort((a, b) => a - b);
+            }
+            
+            // 格式化为字符串
+            let result = '';
+            if (groups.man.length > 0) result += groups.man.join('') + 'm';
+            if (groups.pin.length > 0) result += groups.pin.join('') + 'p';
+            if (groups.sou.length > 0) result += groups.sou.join('') + 's';
+            if (groups.honor.length > 0) result += groups.honor.join('') + 'z';
+            if (groups.flower.length > 0) result += groups.flower.join('') + 'f';
+            
+            return result;
+        }
+
+        // 解析牌的格式用于排序
+        function parseTileForSort(tileString) {
+            if (!tileString || tileString.length < 2) {
+                return { suit: 'unknown', number: 0 };
+            }
+            
+            const number = parseInt(tileString.slice(0, -1));
+            const suit = tileString.slice(-1);
+            
+            return { suit, number };
+        }
+
+        // 按花色和数字排序牌
+        function sortTilesBySuitAndNumber(tileA, tileB) {
+            const aParsed = parseTileForSort(tileA);
+            const bParsed = parseTileForSort(tileB);
+            
+            // 花色排序优先级：m < p < s < z < f
+            const suitOrder = { 'm': 1, 'p': 2, 's': 3, 'z': 4, 'f': 5 };
+            const aSuitOrder = suitOrder[aParsed.suit] || 6;
+            const bSuitOrder = suitOrder[bParsed.suit] || 6;
+            
+            if (aSuitOrder !== bSuitOrder) {
+                return aSuitOrder - bSuitOrder;
+            }
+            
+            // 花色相同时按数字排序
+            return aParsed.number - bParsed.number;
+        }
+
+        // 在指定元素中显示结果消息
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                console.error(`Element with id '${elementId}' not found`);
+                return;
+            }
+            
+            // 清空之前的内容
+            element.innerHTML = '';
+            
+            // 创建消息容器
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+            messageDiv.style.cssText = `
+                position: relative;
+                top: auto;
+                left: auto;
+                transform: none;
+                margin: 10px 0;
+                padding: 10px 15px;
+                border-radius: 4px;
+                font-size: 14px;
+                z-index: auto;
+                animation: none;
+                max-width: 100%;
+                box-shadow: none;
+            `;
+            
+            // 设置消息内容
+            if (message.includes('<')) {
+                // 如果消息包含HTML标签，则使用innerHTML
+                messageDiv.innerHTML = message;
+            } else {
+                // 否则使用textContent
+                messageDiv.textContent = message;
+            }
+            
+            // 添加到目标元素
+            element.appendChild(messageDiv);
+            
+            // 为某些元素类型添加自动清除功能
+            if (type === 'success' && (elementId === 'ruleInfo' || elementId === 'tenpaiResult')) {
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 3000);
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 4px;
+                z-index: 1000;
+                font-size: 14px;
+                max-width: 300px;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // 3秒后自动移除提示
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+        // 测试分数计算
+        function testScoreCalculation() {
+            if (!currentRuleSystem) {
+                showResult('scoreResult', '请先选择规则系统', 'error');
+                return;
+            }
+
+            const winner = document.getElementById('winner').value;
+            const payer = document.getElementById('payer').value;
+            const fanCount = parseInt(document.getElementById('fanCount').value) || 0;
+            const fuCount = parseInt(document.getElementById('fuCount').value) || 0;
+            const winType = document.getElementById('winType').value;
+
+            try {
+                const scores = currentRuleSystem.calculateScores(
+                    winner, [payer], fanCount, fuCount, winType, false
+                );
+
+                let resultHtml = '<h4>分数变化:</h4>';
+                scores.forEach(score => {
+                    resultHtml += `<p><strong>${score.player}:</strong> ${score.change > 0 ? '+' : ''}${score.change}</p>`;
+                });
+
+                showResult('scoreResult', resultHtml, 'success');
+
+            } catch (error) {
+                showResult('scoreResult', `计算错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试向听数计算的示例函数
+        function testShantenCalculation() {
+            // 设置一个典型的非听牌手牌进行测试
+            const testHand = '123m456p78s11223z'; // 1向听
+            document.getElementById('tenpaiHandInput').value = testHand;
+            document.getElementById('tenpaiInInput').value = ''; // 清空摸牌
+            document.getElementById('tenpaiMeldsInput').value = ''; // 清空副露
+            updateTenpaiDisplay();
+            calculateTenpai();
+        }
+
+        // 在页面上添加测试按钮（可选）
+        function addTestButton() {
+            const testSection = document.querySelector('.test-section h2');
+            if (testSection && testSection.textContent === '听牌计算') {
+                const testButton = document.createElement('button');
+                testButton.textContent = '测试13张牌向听';
+                testButton.style.marginLeft = '10px';
+                testButton.onclick = testShantenCalculation;
+                testSection.parentNode.appendChild(testButton);
+                
+                const testButton14 = document.createElement('button');
+                testButton14.textContent = '测试14张牌选择';
+                testButton14.style.marginLeft = '10px';
+                testButton14.onclick = testShantenCalculation14;
+                testSection.parentNode.appendChild(testButton14);
+            }
+        }
+
+        // 测试14张牌的向听计算
+        function testShantenCalculation14() {
+            const testHand = '123m456p78s11223z';
+            const testDraw = '6s';
+            document.getElementById('tenpaiHandInput').value = testHand;
+            document.getElementById('tenpaiInInput').value = testDraw;
+            document.getElementById('tenpaiMeldsInput').value = '';
+            updateTenpaiDisplay();
+            calculateTenpai();
+        }
+        // 页面加载时初始化
+        window.onload = function () {
+            initializeApp();
+        };
+
+        // 初始化规则系统
+        function initializeRuleSystems() {
+            // 清空已有的规则系统
+            availableRuleSystems = {};
+
+            // 动态检测和注册所有可用的规则系统类
+            const ruleClasses = {
+                'chinese-classical-var': ChineseClassicalMahjongVar,
+                'japanese': JapaneseMahjong,
+                'hong-kong-mahjong': HongKongMahjong
+                // 未来可以在这里添加更多规则系统，无需修改其他代码
+            };
+
+            // 注册所有存在的规则系统
+            Object.entries(ruleClasses).forEach(([key, RuleClass]) => {
+                if (typeof RuleClass !== 'undefined') {
+                    availableRuleSystems[key] = new RuleClass();
+                    console.log(`已注册规则系统: ${key} - ${availableRuleSystems[key].name}`);
+                }
+            });
+
+            // 填充规则选择器
+            populateRuleSelector();
+
+            // 设置默认规则
+            const defaultRuleKey = Object.keys(availableRuleSystems)[0];
+            if (defaultRuleKey) {
+                currentRuleSystem = availableRuleSystems[defaultRuleKey];
+            }
+
+            // 初始化UI控制器（如果存在）
+            if (typeof UIController !== 'undefined') {
+                uiController = new UIController();
+            }
+        }
+
+        // 填充规则选择器
+        function populateRuleSelector() {
+            const selector = document.getElementById('ruleSelector');
+            if (!selector) return;
+
+            // 清空现有选项
+            selector.innerHTML = '';
+
+            // 添加所有可用的规则系统
+            Object.entries(availableRuleSystems).forEach(([key, ruleSystem]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = ruleSystem.name;
+                selector.appendChild(option);
+            });
+        }
+
+        // 这个switchRule函数是重复的，使用上面定义的主函数
+
+        // 这个displayRuleInfo函数是重复的，使用上面定义的主函数
+
+        // 更新牌型显示
+        function updateTileDisplay() {
+            const hand = document.getElementById('handInput').value;
+            const winTile = document.getElementById('winTileInput').value;
+            const melds = document.getElementById('meldsInput').value;
+
+            updateDisplayForInputs('tileDisplay', hand, winTile, melds);
+        }
+
+        // 更新听牌显示
+        function updateTenpaiDisplay() {
+            const hand = document.getElementById('tenpaiHandInput').value;
+            const melds = document.getElementById('tenpaiMeldsInput').value;
+            const inTile = document.getElementById('tenpaiInInput').value;
+
+            updateDisplayForInputs('tenpaiTileDisplay', hand, inTile, melds, true);
+        }
+
+        // 通用显示更新函数
+        function updateDisplayForInputs(displayId, hand, winTile, melds, isInTile = false) {
+            const displayDiv = document.getElementById(displayId);
+
+            let displayContent = '';
+            if (hand) {
+                displayContent += `<div class="tile-section"><span class="tile-label">手牌:</span>${convertTilesToUnicode(hand)}</div>`;
+            }
+            if (winTile) {
+                const label = isInTile ? '摸牌:' : '和牌:';
+                displayContent += `<div class="tile-section"><span class="tile-label">${label}</span>${convertTilesToUnicode(winTile)}</div>`;
+            }
+            if (melds) {
+                const meldGroups = melds.split(',');
+                const meldDisplay = meldGroups.map(meld => convertTilesToUnicode(meld.trim())).join(' | ');
+                displayContent += `<div class="tile-section"><span class="tile-label">副露:</span>${meldDisplay}</div>`;
+            }
+
+            displayDiv.innerHTML = displayContent || '<span style="color: #999;">请输入牌型以查看Unicode显示</span>';
+        }
+
+        // 计算听牌
+        function calculateTenpai() {
+            const hand = document.getElementById('tenpaiHandInput').value;
+            const melds = document.getElementById('tenpaiMeldsInput').value;
+
+            if (!hand.trim()) {
+                showErrorAndHideResults('请输入手牌');
+                return;
+            }
+
+            try {
+                // 获取游戏状态
+                const conditions = getTenpaiConditions();
+
+                // 首先尝试计算听牌
+                const tenpaiResults = calculateAllTenpaiTiles(hand, melds, conditions);
+
+                if (tenpaiResults.length > 0) {
+                    // 是听牌，显示听牌结果
+                    showTenpaiResult();
+                    const resultDiv = document.getElementById('tenpaiResult');
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h4>听牌分析结果:</h4>
+                        <p style="color: green;">✓ 发现 ${tenpaiResults.length} 种听牌</p>
+                        <div class="tenpai-grid">
+                            ${tenpaiResults.map((result, index) => {
+                                const specialType = currentRuleSystem.getSpecialFanType ? currentRuleSystem.getSpecialFanType(result.fan) : null;
+                                const fanDisplay = specialType ? specialType.name : `${result.fan}翻`;
+                                return `
+                                <div class="tenpai-item" onclick="showTenpaiDetailNew(${index}, ${JSON.stringify(result).replace(/"/g, '&quot;')})">
+                                    <div class="tenpai-tile">${convertTilesToUnicode(result.tile)}</div>
+                                    <div class="tenpai-value">
+                                        ${fanDisplay} ${result.fu}副<br>
+                                        ${result.points}点
+                                    </div>
+                                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                        点击查看详情
+                                    </div>
+                                </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                } else {
+                    // 不是听牌，计算向听数
+                    if (shantenCalculator && currentRuleSystem) {
+                        calculateAndDisplayShanten(hand, melds, conditions);
+                    } else {
+                        showErrorAndHideResults('向听数计算功能不可用');
+                    }
+                }
+            } catch (error) {
+                showErrorAndHideResults(`计算错误: ${error.message}`);
+            }
+        }
+
+        // 获取听牌计算的条件
+        function getTenpaiConditions() {
+            return {
+                isZimo: false,
+                isGangshangkaihua: false,
+                isHaidiLaoyue: false,
+                isQiangGang: false,
+                isTenhou: false,
+                isChiihou: false,
+                roundWind: document.getElementById('tenpaiRoundWind').value,
+                playerWind: document.getElementById('tenpaiPlayerWind').value 
+            };
+        }
+
+        // 计算所有可能的听牌瓦
+        function calculateAllTenpaiTiles(hand, melds, conditions) {
+            const results = [];
+
+            // 所有可能的牌
+            const allTiles = [
+                '1m', '2m', '3m', '4m', '5m', '6m', '7m', '8m', '9m',
+                '1p', '2p', '3p', '4p', '5p', '6p', '7p', '8p', '9p',
+                '1s', '2s', '3s', '4s', '5s', '6s', '7s', '8s', '9s',
+                '1z', '2z', '3z', '4z', '5z', '6z', '7z'
+            ];
+
+            for (const tile of allTiles) {
+                try {
+                    if (currentRuleSystem && currentRuleSystem.calculateHandValue) {
+
+                        const result = currentRuleSystem.calculateHandValue(hand, tile, melds, conditions);
+                        if (result && result.fan !== undefined && result.fu !== undefined) {
+                            // 计算点数
+                            let points = result.fu + result.fan * 10;
+                            if (currentRuleSystem.calculateBasePoints) {
+                                points = currentRuleSystem.calculateBasePoints(result.fan, result.fu);
+                            }
+
+                            results.push({
+                                tile: tile,
+                                fan: result.fan,
+                                fu: result.fu,
+                                points: points,
+                                fanDetails: result.fanDetails || [],
+                                fuDetails: result.fuDetails || []
+                            });
+                        }
+                    }
+                } catch (error) {
+                    // 忽略无效的牌型
+                    continue;
+                }
+            }
+
+            return results.sort((a, b) => b.points - a.points); // 按点数降序排列
+        }
+
+        // 更新和牌条件
+        function updateWinConditions() {
+            if (!currentRuleSystem) return;
+
+            const conditionsContainer = document.getElementById('win-conditions-analysis');
+            if (!conditionsContainer) return;
+
+            // 清空现有条件
+            conditionsContainer.innerHTML = '';
+
+            // 获取支持的条件
+            const conditions = currentRuleSystem.getSupportedWinConditions ? 
+                              currentRuleSystem.getSupportedWinConditions() : [];
+
+            conditions.forEach(condition => {
+                const label = document.createElement('label');
+
+                // 圈风、门风等自动参数不显示在UI中，由游戏状态自动提供
+                if (condition.hide === true) {
+                    return; // 跳过自动参数
+                }
+
+                if (condition.type === 'number') {
+                    // 数字输入
+                    label.innerHTML = `
+                        <span>${condition.label}：</span>
+                        <input type="number" id="${condition.key}" 
+                               min="${condition.min || 0}" 
+                               max="${condition.max || 99}" 
+                               value="${condition.default || 0}">
+                    `;
+                } else {
+                    // 复选框
+                    label.innerHTML = `
+                        <input type="checkbox" id="${condition.key}" ${condition.default ? 'checked' : ''}> 
+                        ${condition.label}
+                    `;
+                }
+
+                conditionsContainer.appendChild(label);
+            });
+        }
+
+        // 测试牌型分析
+        function testHandAnalysis() {
+            const hand = document.getElementById('handInput').value;
+            const winTile = document.getElementById('winTileInput').value;
+            const melds = document.getElementById('meldsInput').value;
+
+            if (!currentRuleSystem) {
+                showResult('analysisResult', '请先选择规则系统', 'error');
+                return;
+            }
+
+            if (!currentRuleSystem.calculateHandValue) {
+                showResult('analysisResult', '当前规则系统不支持自动分析', 'error');
+                return;
+            }
+
+            // 动态收集和牌条件
+            const conditions = {};
+            
+            // 获取支持的条件
+            const supportedConditions = currentRuleSystem.getSupportedWinConditions ? 
+                                       currentRuleSystem.getSupportedWinConditions() : [];
+            
+            // 从UI中读取条件值
+            supportedConditions.forEach(condition => {
+                const element = document.getElementById(condition.key);
+                if (element) {
+                    if (element.type === 'checkbox') {
+                        conditions[condition.key] = element.checked;
+                    } else if (element.type === 'number') {
+                        conditions[condition.key] = parseInt(element.value) || 0;
+                    } else {
+                        conditions[condition.key] = element.value;
+                    }
+                } else {
+                    // 使用默认值
+                    conditions[condition.key] = condition.default;
+                }
+            });
+
+            // 添加风牌信息
+            conditions.roundWind = document.getElementById('roundWind').value;
+            conditions.playerWind = document.getElementById('playerWind').value;
+
+            try {
+                if (!currentRuleSystem || !currentRuleSystem.calculateHandValue) {
+                    throw new Error('当前规则系统不支持牌型分析');
+                }
+
+                const result = currentRuleSystem.calculateHandValue(hand, winTile, melds, conditions);
+
+                const resultDiv = document.getElementById('analysisResult');
+                resultDiv.className = 'result success';
+
+                // 计算最终点数
+                let finalPoints = result.fu + result.fan * 10;
+                if (currentRuleSystem.calculateBasePoints) {
+                    finalPoints = currentRuleSystem.calculateBasePoints(result.fan, result.fu);
+                }
+
+                // 显示牌型信息
+                const tileInfo = `
+                    <div class="tile-display">
+                        ${hand ? `<div class="tile-section"><span class="tile-label">手牌:</span>${convertTilesToUnicode(hand)}</div>` : ''}
+                        ${winTile ? `<div class="tile-section"><span class="tile-label">和牌:</span>${convertTilesToUnicode(winTile)}</div>` : ''}
+                        ${melds ? `<div class="tile-section"><span class="tile-label">副露:</span>${melds.split(',').map(meld => convertTilesToUnicode(meld.trim())).join(' | ')}</div>` : ''}
+                    </div>
+                `;
+
+                // 构建翻数详情
+                let fanDetailsHtml = '';
+                if (result.fanDetails && result.fanDetails.length > 0) {
+                    fanDetailsHtml = `
+                        <div style="margin-top: 15px;">
+                            <h5 style="color: #007cba; margin-bottom: 10px;">翻数详情:</h5>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; border-left: 4px solid #007cba;">
+                                ${result.fanDetails.map(detail => {
+                                    // 如果detail.fan不是数字，说明已经被格式化，直接显示
+                                    const fanDisplay = typeof detail.fan === 'number' ? `${detail.fan}翻` : detail.fan;
+                                    return `
+                                    <div style="margin-bottom: 8px; padding: 5px; background: white; border-radius: 3px;">
+                                        <strong style="color: #007cba;">${detail.name}</strong>: 
+                                        <span style="color: #d63384; font-weight: bold;">${fanDisplay}</span>
+                                        ${detail.description ? `<br><small style="color: #666;">${detail.description}</small>` : ''}
+                                    </div>
+                                    `;
+                                }).join('')}
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd; font-weight: bold;">
+                                    总计翻数: <span style="color: #d63384;">${currentRuleSystem.getSpecialFanType && currentRuleSystem.getSpecialFanType(result.fan) ? currentRuleSystem.getSpecialFanType(result.fan).name : result.fan + '翻'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 构建副数详情
+                let fuDetailsHtml = '';
+                if (result.fuDetails && result.fuDetails.length > 0) {
+                    fuDetailsHtml = `
+                        <div style="margin-top: 15px;">
+                            <h5 style="color: #28a745; margin-bottom: 10px;">副数详情:</h5>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; border-left: 4px solid #28a745;">
+                                ${result.fuDetails.map(detail => {
+                                    // 如果detail.fu不是数字，说明已经被格式化，直接显示
+                                    const fuDisplay = typeof detail.fu === 'number' ? `${detail.fu}副` : detail.fu;
+                                    return `
+                                    <div style="margin-bottom: 8px; padding: 5px; background: white; border-radius: 3px;">
+                                        <strong style="color: #28a745;">${detail.name}</strong>: 
+                                        <span style="color: #fd7e14; font-weight: bold;">${fuDisplay}</span>
+                                        ${detail.description ? `<br><small style="color: #666;">${detail.description}</small>` : ''}
+                                    </div>
+                                    `;
+                                }).join('')}
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd; font-weight: bold;">
+                                    总计副数: <span style="color: #fd7e14;">${result.fu}副</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = `
+                    ${tileInfo}
+                    <h4>翻副分析结果:</h4>
+                    <p style="color: green;"><strong>✓ 牌型有效</strong></p>
+                    <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div style="font-size: 18px;">
+                                <strong>翻数:</strong> 
+                                <span style="color: #d63384; font-size: 20px; font-weight: bold;">
+                                    ${currentRuleSystem.getSpecialFanType && currentRuleSystem.getSpecialFanType(result.fan) ? currentRuleSystem.getSpecialFanType(result.fan).name : result.fan + '翻'}
+                                </span>
+                            </div>
+                            <div style="font-size: 18px;">
+                                <strong>副数:</strong> 
+                                <span style="color: #fd7e14; font-size: 20px; font-weight: bold;">${result.fu}副</span>
+                            </div>
+                        </div>
+                        <div style="text-align: center; font-size: 20px; font-weight: bold; color: #007cba;">
+                            总点数: ${finalPoints}点
+                        </div>
+                    </div>
+                    ${fanDetailsHtml}
+                    ${fuDetailsHtml}
+                `;
+
+            } catch (error) {
+                const resultDiv = document.getElementById('analysisResult');
+                resultDiv.className = 'result error';
+                console.log (error)
+
+                // 显示牌型信息（即使是诈胡也要显示）
+                let tileInfo = '';
+                if (hand || winTile || melds) {
+                    tileInfo = `
+                        <div class="tile-display">
+                            ${hand ? `<div class="tile-section"><span class="tile-label">手牌:</span>${convertTilesToUnicode(hand)}</div>` : ''}
+                            ${winTile ? `<div class="tile-section"><span class="tile-label">和牌:</span>${convertTilesToUnicode(winTile)}</div>` : ''}
+                            ${melds ? `<div class="tile-section"><span class="tile-label">副露:</span>${melds.split(',').map(meld => convertTilesToUnicode(meld.trim())).join(' | ')}</div>` : ''}
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = `
+                    ${tileInfo}
+                    <h4>分析结果:</h4>
+                    <p style="color: red; font-weight: bold;">✗ ${error.message}</p>
+                `;
+            }
+        }
+
+        // 测试分数计算
+        function testScoreCalculation() {
+            const winner = document.getElementById('winner').value;
+            const payer = document.getElementById('payer').value;
+            const fanCount = parseInt(document.getElementById('fanCount').value) || 0;
+            const fuCount = parseInt(document.getElementById('fuCount').value) || 0;
+            const winType = document.getElementById('winType').value;
+
+            try {
+                if (!currentRuleSystem || !currentRuleSystem.calculateScores) {
+                    throw new Error('当前规则系统不支持分数计算');
+                }
+
+                const scores = currentRuleSystem.calculateScores(
+                    winner, [payer], fanCount, fuCount, winType, 'east'
+                );
+
+                const resultDiv = document.getElementById('scoreResult');
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <h4>分数变化:</h4>
+                    ${scores.map(score =>
+                    `<p><strong>${score.player}:</strong> ${score.change > 0 ? '+' : ''}${score.change}</p>`
+                ).join('')}
+                `;
+            } catch (error) {
+                const resultDiv = document.getElementById('scoreResult');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<p>错误: ${error.message}</p>`;
+            }
+        }
+
+        // 测试预设牌型
+        function testPresetHands(type) {
+            const resultDiv = document.getElementById('presetResult');
+            let testCase;
+
+            switch (type) {
+                case 'duiduihu':
+                    testCase = {
+                        name: '对对和',
+                        hand: '111m222p33344s44z',
+                        winTile: '4z',
+                        melds: '',
+                        conditions: { isZimo: false }
+                    };
+                    break;
+                case 'qingyise':
+                    testCase = {
+                        name: '清一色',
+                        hand: '123456778899m1m',
+                        winTile: '1m',
+                        melds: '',
+                        conditions: { isZimo: false }
+                    };
+                    break;
+                case 'dasanyuan':
+                    testCase = {
+                        name: '大三元',
+                        hand: '555z666z777z55s11m',
+                        winTile: '1m',
+                        melds: '',
+                        conditions: { isZimo: false }
+                    };
+                    break;
+                case 'zimohua':
+                    testCase = {
+                        name: '自摸+花牌',
+                        hand: '123m456p789s555z1z',
+                        winTile: '1z',
+                        melds: '1234f',
+                        conditions: { isZimo: true }
+                    };
+                    break;
+                case 'windtest':
+                    testCase = {
+                        name: '风牌测试',
+                        hand: '123m456p789s11z77z',
+                        winTile: '1z',
+                        melds: '',
+                        conditions: {
+                            isZimo: false,
+                            roundWind: 1,
+                            playerWind: 1
+                        }
+                    };
+                    break;
+                case 'zhahu':
+                    testCase = {
+                        name: '诈胡测试',
+                        hand: '123m456p78s112z',
+                        winTile: '3z',
+                        melds: '',
+                        conditions: { isZimo: false },
+                        shouldFail: true
+                    };
+                    break;
+            }
+
+            try {
+                if (!currentRuleSystem || !currentRuleSystem.calculateHandValue) {
+                    throw new Error('当前规则系统不支持牌型分析');
+                }
+
+                // 设置风牌信息到UI（如果测试用例有指定）
+                if (testCase.conditions.roundWind) {
+                    document.getElementById('roundWind').value = testCase.conditions.roundWind;
+                }
+                if (testCase.conditions.playerWind) {
+                    document.getElementById('playerWind').value = testCase.conditions.playerWind;
+                }
+
+                const result = currentRuleSystem.calculateHandValue(
+                    testCase.hand, testCase.winTile, testCase.melds, testCase.conditions
+                );
+
+                if (testCase.shouldFail) {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h4>${testCase.name} 测试结果:</h4>
+                        <p style="color: orange;">⚠️ 警告：期望诈胡但通过了验证</p>
+                    `;
+                    return;
+                }
+
+                // 计算最终点数
+                let finalPoints = result.fu + result.fan * 10;
+                if (currentRuleSystem.calculateBasePoints) {
+                    finalPoints = currentRuleSystem.calculateBasePoints(result.fan, result.fu);
+                }
+
+                // 显示牌型信息
+                const tileInfo = `
+                    <div class="tile-display">
+                        <div class="tile-section"><span class="tile-label">手牌:</span>${convertTilesToUnicode(testCase.hand)}</div>
+                        <div class="tile-section"><span class="tile-label">和牌:</span>${convertTilesToUnicode(testCase.winTile)}</div>
+                        ${testCase.melds ? `<div class="tile-section"><span class="tile-label">副露:</span>${convertTilesToUnicode(testCase.melds)}</div>` : ''}
+                    </div>
+                `;
+
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    ${tileInfo}
+                    <h4>${testCase.name} 测试结果:</h4>
+                    <p style="color: green;"><strong>✓ 牌型有效</strong></p>
+                    <p><strong>翻数:</strong> ${result.fan === 100 ? '满贯' : result.fan === 50 ? '半满贯' : result.fan}</p>
+                    <p><strong>副数:</strong> ${result.fu}</p>
+                    <p><strong>总点数:</strong> ${finalPoints}点</p>
+                `;
+            } catch (error) {
+                if (testCase.shouldFail && error.message.includes('诈胡')) {
+                    const tileInfo = `
+                        <div class="tile-display">
+                            <div class="tile-section"><span class="tile-label">手牌:</span>${convertTilesToUnicode(testCase.hand)}</div>
+                            <div class="tile-section"><span class="tile-label">和牌:</span>${convertTilesToUnicode(testCase.winTile)}</div>
+                            ${testCase.melds ? `<div class="tile-section"><span class="tile-label">副露:</span>${convertTilesToUnicode(testCase.melds)}</div>` : ''}
+                        </div>
+                    `;
+
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        ${tileInfo}
+                        <h4>${testCase.name} 测试结果:</h4>
+                        <p style="color: red; font-weight: bold;">✗ ${error.message}</p>
+                        <p style="color: green;">✓ 诈胡检测正常工作</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<p>错误: ${error.message}</p>`;
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

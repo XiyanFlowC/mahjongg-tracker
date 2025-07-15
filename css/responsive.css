@@ -1,0 +1,412 @@
+/* 响应式设计样式 */
+
+/* 超大屏幕 (1200px+) */
+@media (min-width: 1200px) {
+    .scorepad {
+        width: 500px;
+        height: 500px;
+        grid-template-columns: 1fr 250px 1fr;
+        grid-template-rows: 1fr 250px 1fr;
+    }
+    
+    .wind {
+        font-size: 28px;
+    }
+    
+    .score {
+        font-size: 26px;
+    }
+    
+    .name {
+        font-size: 16px;
+    }
+    
+    .round {
+        font-size: 28px;
+    }
+    
+    .banker-indicator {
+        font-size: 24px;
+    }
+    
+    .main-menu {
+        width: 350px;
+    }
+
+    .modal-content.large {
+        max-width: 600px;
+        min-width: 500px;
+    }
+}
+
+/* 大屏幕 (992px-1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .scorepad {
+        width: 450px;
+        height: 450px;
+        grid-template-columns: 1fr 225px 1fr;
+        grid-template-rows: 1fr 225px 1fr;
+    }
+
+    .modal-content.large {
+        max-width: 600px;
+        min-width: 500px;
+    }
+}
+
+/* 中等屏幕 (768px-991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .scorepad {
+        width: 400px;
+        height: 400px;
+    }
+    
+    .main-menu {
+        width: 280px;
+    }
+}
+
+/* 小屏幕 (576px-767px) */
+@media (min-width: 576px) and (max-width: 767px) {
+    .scorepad {
+        width: 350px;
+        height: 350px;
+        grid-template-columns: 1fr 150px 1fr;
+        grid-template-rows: 1fr 150px 1fr;
+    }
+    
+    .main-menu {
+        width: 250px;
+    }
+    
+    .player {
+        padding: 12px;
+    }
+    
+    .wind {
+        font-size: 28px;
+    }
+    
+    .score {
+        font-size: 26px;
+    }
+    
+    .name {
+        font-size: 12px;
+    }
+    
+    .round {
+        font-size: 24px;
+    }
+    
+    .banker-indicator {
+        font-size: 16px;
+    }
+}
+
+/* 超小屏幕 (480px-575px) */
+@media (min-width: 480px) and (max-width: 575px) {
+    .scorepad {
+        width: 320px;
+        height: 320px;
+        grid-template-columns: 1fr 130px 1fr;
+        grid-template-rows: 1fr 130px 1fr;
+        gap: 8px;
+    }
+    
+    .main-menu {
+        width: 230px;
+    }
+    
+    #main-menu-toggle {
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+        top: 15px;
+        left: 15px;
+    }
+    
+    .player {
+        padding: 8px;
+    }
+    
+    .wind {
+        font-size: 28px;
+    }
+    
+    .score {
+        font-size: 26px;
+    }
+    
+    .name {
+        font-size: 11px;
+    }
+    
+    .round {
+        font-size: 20px;
+    }
+    
+    .banker-indicator {
+        font-size: 14px;
+    }
+    
+    .menu-btn {
+        width: 25px;
+        height: 25px;
+        font-size: 12px;
+    }
+}
+
+/* 极小屏幕 (320px-479px) */
+@media (max-width: 479px) {
+    .scorepad {
+        width: 280px;
+        height: 280px;
+        grid-template-columns: 1fr 110px 1fr;
+        grid-template-rows: 1fr 110px 1fr;
+        gap: 5px;
+        padding: 8px;
+    }
+    
+    .main-menu {
+        width: 200px;
+        padding: 60px 15px 15px;
+    }
+    
+    #main-menu-toggle {
+        width: 38px;
+        height: 38px;
+        font-size: 14px;
+        top: 10px;
+        left: 10px;
+    }
+    
+    .player {
+        padding: 6px;
+        border-radius: 20px;
+    }
+    
+    .wind {
+        font-size: 28px;
+        margin: 2px;
+    }
+    
+    .score {
+        font-size: 26px;
+    }
+    
+    .name {
+        font-size: 10px;
+        margin-bottom: 2px;
+    }
+    
+    .round {
+        font-size: 18px;
+        margin-bottom: 2px;
+    }
+    
+    .banker-indicator {
+        font-size: 12px;
+    }
+    
+    .menu-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+        top: 3px;
+        right: 3px;
+    }
+    
+    .center-button {
+        padding: 6px 12px;
+        font-size: 10px;
+        border-radius: 15px;
+    }
+    
+    .menu-section h3 {
+        font-size: 14px;
+    }
+    
+    .menu-section button {
+        font-size: 12px;
+        padding: 10px 12px;
+    }
+    
+    .toast {
+        top: 60px;
+        right: 10px;
+        left: 10px;
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+}
+
+/* 横屏模式适配 */
+@media (orientation: landscape) and (max-height: 600px) {
+    .scorepad {
+        width: min(400px, 80vh);
+        height: min(400px, 80vh);
+    }
+    
+    .main-menu {
+        height: 100vh;
+        overflow-y: auto;
+    }
+}
+
+/* 高分辨率屏幕优化 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .player, .center {
+        border-width: 1px;
+    }
+    
+    .menu-btn {
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .wind, .score, .round, .banker-indicator {
+        text-shadow: 0 0.5px 1px rgba(0,0,0,0.1);
+    }
+}
+
+/* 打印样式 */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+    
+    .main-menu, #main-menu-toggle, .menu-btn, .toast {
+        display: none !important;
+    }
+    
+    .scorepad {
+        box-shadow: none;
+        border: 2px solid #333;
+    }
+    
+    .player, .center {
+        background: white;
+        border: 1px solid #333;
+        box-shadow: none;
+    }
+}
+
+/* 无障碍支持 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01s !important;
+    }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+    .player, .center {
+        border-width: 3px;
+        border-color: #000;
+    }
+    
+    .wind, .score, .round, .banker-indicator {
+        color: #000;
+        text-shadow: none;
+        font-weight: bold;
+    }
+    
+    button {
+        border: 2px solid #000;
+    }
+}
+
+/* 暗色模式偏好 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2d2d2d;
+        --text-primary: #ffffff;
+        --text-secondary: #cccccc;
+        --accent-color: #4CAF50;
+    }
+}
+
+/* 桌面设备hover效果 */
+@media (hover: hover) and (pointer: fine) {
+    .player.north .player-content.rotated-north:hover {
+        transform: translate(-50%, -50%) rotate(90deg) scale(1.05) !important;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
+    }
+    
+    .player.south .player-content.rotated-south:hover {
+        transform: translate(-50%, -50%) rotate(-90deg) scale(1.05) !important;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
+    }
+}
+
+/* 触摸设备特定样式 */
+@media (hover: none) and (pointer: coarse) {
+    /* 触摸设备上完全禁用hover效果 */
+    .player.east:hover, .player.west:hover, 
+    .player.north .player-content:hover, .player.south .player-content:hover,
+    .center:hover, button:hover, .menu-btn:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* 触摸设备上保持原有的旋转但移除hover效果 */
+    .player.west:hover {
+        transform: rotate(180deg) !important;
+    }
+    
+    .player.north .player-content.rotated-north:hover {
+        transform: translate(-50%, -50%) rotate(90deg) !important;
+    }
+    
+    .player.south .player-content.rotated-south:hover {
+        transform: translate(-50%, -50%) rotate(-90deg) !important;
+    }
+    
+    .player:active, .center:active {
+        transform: scale(0.95);
+    }
+    
+    /* 触摸设备上的active效果也需要保持旋转 */
+    .player.west:active {
+        transform: rotate(180deg) scale(0.95);
+    }
+    
+    .player.north .player-content:active {
+        transform: translate(-50%, -50%) rotate(90deg) scale(0.95);
+    }
+    
+    .player.south .player-content:active {
+        transform: translate(-50%, -50%) rotate(-90deg) scale(0.95);
+    }
+    
+    button:active {
+        transform: scale(0.98);
+    }
+    
+    .menu-btn:active {
+        transform: scale(0.9);
+    }
+}
+
+/* 键盘导航支持 */
+.player:focus, .center:focus, button:focus, .menu-btn:focus {
+    outline: 3px solid #4CAF50;
+    outline-offset: 2px;
+}
+
+/* 屏幕阅读器专用 */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

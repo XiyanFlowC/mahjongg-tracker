@@ -1,0 +1,609 @@
+/* 分数盘样式 */
+#scorepad-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.scorepad {
+    width: 90vmin;
+    height: 90vmin;
+    min-width: 600px;
+    min-height: 600px;
+    max-width: 900px;
+    max-height: 900px;
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 20px;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 25px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: transform 0.6s ease-in-out;
+}
+
+/* 玩家位置 */
+.player {
+    display: flex;
+    align-items: stretch;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 25px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: 3px solid transparent;
+    font-size: 18px;
+}
+
+/* hover效果现在在下方针对各个方向单独定义 */
+
+.player.highlighted {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.player.winner {
+    border-color: #FFD700;
+    background: rgba(255, 215, 0, 0.2);
+    animation: winnerGlow 2s infinite alternate;
+}
+
+@keyframes winnerGlow {
+    0% { box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); }
+    100% { box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6); }
+}
+
+.player.loser {
+    border-color: #f44336;
+    background: rgba(244, 67, 54, 0.1);
+}
+
+/* 东家（下方） - 位置7和8 */
+.player.east {
+    grid-column: 1 / 3;
+    grid-row: 3;
+    flex-direction: row;
+}
+
+/* 北家（左侧） - 位置1和4 */
+.player.north {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border: none;
+}
+
+/* 西家（上方） - 位置2和3 */
+.player.west {
+    grid-column: 2 / 4;
+    grid-row: 1;
+    flex-direction: row;
+    transform: rotate(180deg);
+    z-index: 1;
+}
+
+/* 南家（右侧） - 位置6和9 */
+.player.south {
+    grid-column: 3;
+    grid-row: 2 / 4;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border: none;
+}
+
+/* 北家（左侧）的重复定义 */
+.player.north {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border: none;
+}
+
+/* 北家和南家的内容容器 */
+.player.north .player-content,
+.player.south .player-content {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: 3px solid transparent;
+    font-size: 18px;
+    position: absolute;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1;
+    /* 尺寸将由JavaScript动态设置 */
+}
+
+
+.player.north .menu-btn {
+    transform: rotate(90deg);
+}
+
+.player.west .menu-btn {
+    transform: rotate(-180deg);
+}
+
+.player.south .menu-btn {
+    transform: rotate(-90deg);
+}
+
+/* 修复各方向玩家的hover效果 */
+.player.east:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.player.west:hover {
+    transform: rotate(180deg) scale(1.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* 北南家的初始旋转状态 */
+.player-content.rotated-north {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.player-content.rotated-south {
+    transform: translate(-50%, -50%) rotate(-90deg);
+}
+
+/* 北南家hover时的效果，覆盖初始旋转 */
+.player.north .player-content.rotated-north:hover {
+    transform: translate(-50%, -50%) rotate(90deg) scale(1.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.player.south .player-content.rotated-south:hover {
+    transform: translate(-50%, -50%) rotate(-90deg) scale(1.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* 风向显示 */
+.wind {
+    font-size: 48px;
+    font-weight: bold;
+    color: #1976d2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    margin-right: 20px;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+}
+
+/* 玩家信息 */
+.player-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.score {
+    font-size: 32px;
+    font-weight: bold;
+    color: #1976d2;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 8px;
+    line-height: 1;
+}
+
+.name {
+    font-size: 20px;
+    color: #555;
+    font-weight: 600;
+    line-height: 1;
+}
+
+/* 负分数显示为红色 */
+.score.negative {
+    color: #d32f2f !important;
+}
+
+/* 菜单按钮 */
+.menu-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.menu-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333;
+    transform: scale(1.2);
+}
+
+/* 中央区域 */
+.center {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    border: 4px solid transparent;
+}
+
+.center:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+}
+
+.center.active {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+/* 游戏信息 */
+.game-info {
+    text-align: center;
+}
+
+.round {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1976d2;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+/* 中央按钮 */
+.center-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    min-width: 80px;
+    min-height: 40px;
+}
+
+.center-button:hover {
+    background: #45a049;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.center-button.tsumo {
+    background: #FF9800;
+}
+
+.center-button.ron {
+    background: #2196F3;
+}
+
+/* 分数变化动画 */
+.score-change {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    font-weight: bold;
+    pointer-events: none;
+    animation: scoreChangeFloat 2s ease-out forwards;
+    z-index: 999;
+}
+
+.score-change.positive {
+    color: #4CAF50;
+}
+
+.score-change.negative {
+    color: #f44336;
+}
+
+@keyframes scoreChangeFloat {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-40px);
+    }
+}
+
+/* 相公标记 */
+.player.xianggong::after {
+    content: '相公';
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: #9C27B0;
+    color: white;
+    border-radius: 10px;
+    font-size: 8px;
+    padding: 2px 4px;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 分数盘旋转动画 */
+.scorepad.rotating {
+    animation: none;
+}
+
+.scorepad.rotate-90 {
+    transform: rotate(90deg);
+}
+
+.scorepad.rotate-180 {
+    transform: rotate(180deg);
+}
+
+.scorepad.rotate-270 {
+    transform: rotate(270deg);
+}
+
+.scorepad.rotate-360 {
+    transform: rotate(360deg);
+}
+
+/* 触摸设备优化 */
+.touch-device .player,
+.touch-device .center {
+    min-height: 60px;
+}
+
+.touch-device .menu-btn {
+    width: 30px;
+    height: 30px;
+}
+
+/* 深色主题适配 */
+.dark-theme .player {
+    background: rgba(69, 90, 120, 0.9);
+    color: #ecf0f1;
+}
+
+.dark-theme .wind,
+.dark-theme .score,
+.dark-theme .round {
+    color: #81c784;
+}
+
+.dark-theme .name {
+    color: #bdc3c7;
+}
+
+.dark-theme .center {
+    background: rgba(69, 90, 120, 0.95);
+}
+
+.dark-theme .banker-indicator {
+    color: #ff8a65;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .scorepad {
+        width: 95vmin;
+        height: 95vmin;
+        min-width: 400px;
+        min-height: 400px;
+        gap: 15px;
+        padding: 25px;
+    }
+    
+    .player {
+        padding: 15px;
+    }
+    
+    .wind {
+        font-size: 40px;
+        min-width: 65px;
+        margin-right: 15px;
+    }
+    
+    .score {
+        font-size: 28px;
+    }
+    
+    .name {
+        font-size: 16px;
+    }
+    
+    .round {
+        font-size: 24px;
+    }
+    
+    .xianggong-mark {
+        width: 28px;
+        height: 28px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .scorepad {
+        width: 98vmin;
+        height: 98vmin;
+        min-width: 320px;
+        min-height: 320px;
+        gap: 10px;
+        padding: 20px;
+    }
+    
+    .player {
+        padding: 12px;
+        border-radius: 15px;
+    }
+    
+    .wind {
+        font-size: 36px;
+        min-width: 55px;
+        margin-right: 10px;
+    }
+    
+    .score {
+        font-size: 26px;
+        margin-bottom: 4px;
+    }
+    
+    .name {
+        font-size: 14px;
+    }
+    
+    .round {
+        font-size: 20px;
+    }
+    
+    .menu-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+        top: 6px;
+        right: 6px;
+    }
+    
+    .xianggong-mark {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+        top: 6px;
+        left: 6px;
+    }
+    
+    .center-button {
+        padding: 6px 12px;
+        font-size: 11px;
+        border-radius: 15px;
+    }
+}
+
+/* 庄家标记 - 使用红色风字表示 */
+.player.banker .wind {
+    color: #d32f2f !important;
+    font-weight: bold;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* 相公标记 */
+.xianggong-mark {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #666;
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    z-index: 5;
+}
+
+.xianggong-mark.hidden {
+    display: none;
+}
+
+.player.xianggong .xianggong-mark {
+    display: flex !important;
+}
+
+/* 玩家状态指示器（和牌模式时显示） */
+.player-status {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 10;
+    white-space: nowrap;
+}
+
+.player-status.hidden {
+    display: none;
+}
+
+.player-status.winner {
+    background: #4caf50;
+}
+
+.player-status.payer {
+    background: #f44336;
+}
+
+/* 南北家的特殊样式调整 */
+.player.south .player-status,
+.player.north .player-status {
+    position: absolute;
+    top: 8px;
+    right: 50%;
+    transform: translateX(50%);
+}
+
+/* 南北家的相公标记调整 */
+.player.south .xianggong-mark,
+.player.north .xianggong-mark {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+}

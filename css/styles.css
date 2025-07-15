@@ -1,0 +1,250 @@
+/* 基础样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+    background: linear-gradient(135deg, #e3f2fd 0%, #81c784 50%, #4fc3f7 100%);
+    color: #333;
+    overflow: hidden;
+    height: 100vh;
+    user-select: none;
+}
+
+#app {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* 隐藏类 */
+.hidden {
+    display: none !important;
+}
+
+/* 按钮基础样式 */
+button {
+    background: #e3f2fd;
+    color: #0c3c5e;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background: #e7f3fc;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button.primary {
+    background: #2196F3;
+}
+
+button.primary:hover {
+    background: #1976D2;
+}
+
+button.danger {
+    background: #f44336;
+}
+
+button.danger:hover {
+    background: #d32f2f;
+}
+
+/* 输入框样式 */
+input, select, textarea {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* 按钮组样式 */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.button-group button {
+    min-width: 80px;
+}
+
+/* 主菜单切换按钮 */
+#main-menu-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+
+#main-menu-toggle:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+/* 主菜单样式 */
+.main-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 99;
+    padding: 80px 20px 20px;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    box-shadow: 5px 0 20px rgba(0,0,0,0.1);
+}
+
+.main-menu.collapsed {
+    transform: translateX(-100%);
+}
+
+.menu-section {
+    margin-bottom: 30px;
+}
+
+.menu-section h3 {
+    margin-bottom: 15px;
+    color: #666;
+    font-size: 16px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.menu-section button {
+    width: 100%;
+    margin-bottom: 8px;
+    text-align: left;
+    background: transparent;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 12px 15px;
+    font-size: 13px;
+}
+
+.menu-section button:hover {
+    background: #f5f5f5;
+    border-color: #4CAF50;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 成功/错误消息样式 */
+.error-message, .success-message {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    z-index: 2000;
+    animation: messageSlideIn 0.3s ease-out;
+    font-size: 14px;
+    font-weight: 500;
+    max-width: 80vw;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.error-message {
+    background: #f44336;
+}
+
+.success-message {
+    background: #4CAF50;
+}
+
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* 深色主题 */
+.dark-theme {
+    background: linear-gradient(135deg, #1a237e 0%, #2e7d32 50%, #1976d2 100%);
+    color: #ecf0f1;
+}
+
+.dark-theme .main-menu {
+    background: rgba(44, 62, 80, 0.95);
+    color: #ecf0f1;
+}
+
+.dark-theme .menu-section button {
+    color: #ecf0f1;
+    border-color: #556983;
+}
+
+.dark-theme .menu-section button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* 版本信息 */
+.version-info {
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    z-index: 1000;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .main-menu {
+        width: 250px;
+    }
+    
+    #main-menu-toggle {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+}
