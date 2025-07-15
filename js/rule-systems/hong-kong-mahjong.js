@@ -51,7 +51,7 @@ class HongKongMahjong extends BaseRuleSystem {
      */
     getSettingsDefinition() {
         return {
-            '基本设置': {
+            '基本設置': {
                 basePoint: { type: 'number', label: '底分', default: 1, min: 1, max: 10 },
                 minFan: { type: 'number', label: '起糊番数', default: 3, min: 0, max: 10 },
                 maxFan: { type: 'number', label: '最大番数', default: 10, min: 5, max: 20 },
@@ -70,12 +70,12 @@ class HongKongMahjong extends BaseRuleSystem {
      */
     formatRound(wind, round) {
         const windNames = {
-            east: '东',
+            east: '東',
             south: '南',
             west: '西',
             north: '北'
         };
-        const roundNames = ['', '东', '南', '西', '北'];
+        const roundNames = ['', '東', '南', '西', '北'];
         return `${windNames[wind] || wind}圈${roundNames[round]}局`;
     }
 
@@ -96,7 +96,7 @@ class HongKongMahjong extends BaseRuleSystem {
      */
     calculateBasePoints(fanCount, fuCount = 1) {
         if (fanCount < this.settings.minFan) {
-            throw new Error(`未达到起糊番数（${this.settings.minFan}番）`);
+            throw new Error(`未達起糊番數（${this.settings.minFan}番）`);
         }
         
         // 应用最大番数限制
