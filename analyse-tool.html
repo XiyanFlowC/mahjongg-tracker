@@ -638,6 +638,10 @@
             <div id="win-conditions-analysis" class="win-conditions">
                 <!-- 和牌条件将由规则系统动态生成 -->
             </div>
+            <!-- 添加自摸选项框 -->
+            <div id="win-conditions-extra" class="win-conditions">
+                <label>自摸<input id="win-cond-zimo" type="checkbox" /></label>
+            </div>
 
             <h3>风牌设置:</h3>
             <label>当前圈风: <select id="roundWind">
@@ -2285,6 +2289,8 @@
 
             // 动态收集和牌条件
             const conditions = {};
+
+            const isZimo = document.getElementById("win-cond-zimo").checked;
             
             // 获取支持的条件
             const supportedConditions = currentRuleSystem.getSupportedWinConditions ? 
@@ -2306,6 +2312,9 @@
                     conditions[condition.key] = condition.default;
                 }
             });
+
+            conditions["isZimo"] = isZimo;
+            conditions["isTsumo"] = isZimo;
 
             // 添加风牌信息
             conditions.roundWind = document.getElementById('roundWind').value;

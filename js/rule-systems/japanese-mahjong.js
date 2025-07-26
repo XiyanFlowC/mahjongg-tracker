@@ -578,9 +578,15 @@ class JapaneseMahjong extends BaseRuleSystem {
         // 优化的七对子检查：先检查标准型，只有当标准型番数不足2番时才考虑七对子
         let bestResult = null;
         let bestScore = -1;
+
+        let ronTile = null;
+        if (winningTile && enhancedConditions.isTsumo === false) {
+            // 如果是荣和，获取和牌的牌
+            ronTile = winningTile[0]; // 只取第一张作为和牌
+        }
         
         // 1. 检查标准型
-        const decompositions = this.findAllValidDecompositions(allNormalTiles, standardizedMeldTiles);
+        const decompositions = this.findAllValidDecompositions(allNormalTiles, standardizedMeldTiles, ronTile);
         if (decompositions.length > 0) {
             for (const decomposition of decompositions) {
                 console.log(`尝试分解：`, decomposition);
@@ -746,7 +752,7 @@ class JapaneseMahjong extends BaseRuleSystem {
     }
     
     // 找出所有可能的有效牌型分解
-    findAllValidDecompositions(tiles, melds) {
+    findAllValidDecompositions(tiles, melds, ronTile = null) {
         const decompositions = [];
         
         // 找出所有可能的雀头
@@ -754,7 +760,7 @@ class JapaneseMahjong extends BaseRuleSystem {
         
         for (const pairResult of possiblePairs) {
             const remainingTiles = [...pairResult.remaining];
-            const combinations = this.findAllMentuCombinations(remainingTiles);
+            const combinations = this.findAllMentuCombinations(remainingTiles, ronTile);
             
             // 计算所需的面子数量：总共需要4副面子，减去已有的副露面子数量
             const meldCount = melds.length; // melds 是副露的数组
@@ -833,7 +839,7 @@ class JapaneseMahjong extends BaseRuleSystem {
     
     getSupportedWinConditions() {
         return [
-            { key: 'isTsumo', label: '自摸', default: false },
+            { key: 'isTsumo', label: '自摸', default: false, hide: true },
             { key: 'isRiichi', label: '立直', default: false },
             { key: 'isDoubleRiichi', label: '两立直', default: false },
             { key: 'isIppatsu', label: '一发', default: false },
@@ -1119,7 +1125,7 @@ class JapaneseMahjong extends BaseRuleSystem {
     // 检查三暗刻
     checkSanankou(decomposition, meldNormal, meldTiles) {
         const ankouCount = decomposition.mentsu.filter(mentsu => 
-            mentsu.type === 'koutsu' && !this.isMeldTile(mentsu.tile, meldNormal)
+            mentsu.type === 'koutsu' && mentsu.isConcealed
         ).length;
         
         // 加上暗杠数量
@@ -1581,20 +1587,20 @@ class JapaneseMahjong extends BaseRuleSystem {
     }
     
     // 找出所有可能的面子组合
-    findAllMentuCombinations(tiles) {
+    findAllMentuCombinations(tiles, ronTile = null) {
         if (tiles.length === 0) return [[]];
         if (tiles.length % 3 !== 0) return [];
         
         const tileCount = this.getTileCountFromParsed(tiles);
         const combinations = [];
         
-        this.findMentuRecursive(tileCount, [], combinations);
+        this.findMentuRecursive(tileCount, [], combinations, ronTile);
         
         return combinations;
     }
     
     // 递归查找面子组合
-    findMentuRecursive(tileCount, currentCombination, allCombinations) {
+    findMentuRecursive(tileCount, currentCombination, allCombinations, ronTile = null) {
         // 检查是否所有牌都已用完
         const remainingTiles = Object.values(tileCount).reduce((sum, count) => sum + count, 0);
         if (remainingTiles === 0) {
@@ -1611,16 +1617,18 @@ class JapaneseMahjong extends BaseRuleSystem {
         // 尝试形成刻子
         if (tileCount[firstTileKey] >= 3) {
             const newTileCount = { ...tileCount };
+            const isConcealed = tileCount[firstTileKey] == 3 && this.tileToKey(ronTile) == firstTileKey ? false : true; // 如果是和牌，则不是暗刻
             newTileCount[firstTileKey] -= 3;
             
             const mentsu = {
                 type: 'koutsu',
                 tile: firstTileKey,
-                tiles: [firstTileKey, firstTileKey, firstTileKey]
+                tiles: [firstTileKey, firstTileKey, firstTileKey],
+                isConcealed: isConcealed
             };
             
             currentCombination.push(mentsu);
-            this.findMentuRecursive(newTileCount, currentCombination, allCombinations);
+            this.findMentuRecursive(newTileCount, currentCombination, allCombinations, ronTile);
             currentCombination.pop();
         }
         
@@ -2092,7 +2100,7 @@ class JapaneseMahjong extends BaseRuleSystem {
         for (const mentsu of decomposition.mentsu) {
             if (mentsu.type === 'koutsu') {
                 const isYaochuu = this.isYaochuuTileFromKey(mentsu.tile);
-                const isAnkou = !this.isMeldTile(mentsu.tile, meldNormal);
+                const isAnkou = mentsu.isConcealed;
                 const tileName = this.keyToTileName(mentsu.tile);
                 
                 if (isYaochuu) {
@@ -2129,6 +2137,17 @@ class JapaneseMahjong extends BaseRuleSystem {
                         fu += fuValue;
                         const typeDesc = isAnkan ? '暗杠' : '明杠';
                         fuDetails.push({ name: `${typeDesc}(中张)`, fu: fuValue, description: `${tileName}${typeDesc}` });
+                    }
+                } else if (meld.type === 'koutsu') {
+                    // 副露明刻
+                    const isYaochuu = this.isYaochuuTile(meld.tiles[0]);
+                    const tileName = this.keyToTileName(this.tileToKey(meld.tiles[0]));
+                    if (isYaochuu) {
+                        fu += 4; // 幺九明刻: 4符
+                        fuDetails.push({ name: '明刻(幺九)', fu: 4, description: `${tileName}明刻` });
+                    } else {
+                        fu += 2; // 中张明刻: 2符
+                        fuDetails.push({ name: '明刻(中张)', fu: 2, description: `${tileName}明刻` });
                     }
                 }
             }

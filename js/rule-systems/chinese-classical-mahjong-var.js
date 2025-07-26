@@ -1222,7 +1222,7 @@ class ChineseClassicalMahjongVar extends BaseRuleSystem {
     
     getSupportedWinConditions() {
         return [
-            { key: 'isZimo', label: '自摸', default: false },
+            { key: 'isZimo', label: '自摸', default: false, hide: true },
             { key: 'isGangshangkaihua', label: '杠上开花', default: false },
             { key: 'isHaidiLaoyue', label: '海底摸月', default: false },
             { key: 'isQiangGang', label: '抢杠', default: false },
