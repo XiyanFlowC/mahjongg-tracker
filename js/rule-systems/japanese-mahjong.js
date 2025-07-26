@@ -502,7 +502,7 @@ class JapaneseMahjong extends BaseRuleSystem {
             isValid: true
         };
         
-        console.log(`分析牌型：${allNormalTiles.map(t => t.original || `${t.number}${t.suit}`).join('')}`);
+        // console.log(`分析牌型：${allNormalTiles.map(t => t.original || `${t.number}${t.suit}`).join('')}`);
         
         // 首先检查特殊和牌型
         if (this.checkKokushi(allNormalTiles)) {
@@ -1617,7 +1617,7 @@ class JapaneseMahjong extends BaseRuleSystem {
         // 尝试形成刻子
         if (tileCount[firstTileKey] >= 3) {
             const newTileCount = { ...tileCount };
-            const isConcealed = tileCount[firstTileKey] == 3 && this.tileToKey(ronTile) == firstTileKey ? false : true; // 如果是和牌，则不是暗刻
+            const isConcealed = ronTile && tileCount[firstTileKey] == 3 && this.tileToKey(ronTile) == firstTileKey ? false : true; // 如果是和牌，则不是暗刻
             newTileCount[firstTileKey] -= 3;
             
             const mentsu = {

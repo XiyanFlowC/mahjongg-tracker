@@ -565,9 +565,9 @@
         <div>
             <label>手牌：<input type="text" id="tenpaiHandInput" placeholder="例：123m456p789s11z（13张牌）"
                     onchange="updateTenpaiDisplay(); calculateTenpai()" /></label><br>
-            <label>副露：<input type="text" id="tenpaiMeldsInput" placeholder="例：123m,456p（可选）"
-                    onchange="updateTenpaiDisplay(); calculateTenpai()" /></label><br>
             <label>摸牌：<input type="text" id="tenpaiInInput" placeholder="例：1z（可留空）"
+                    onchange="updateTenpaiDisplay(); calculateTenpai()" /></label><br>
+            <label>副露：<input type="text" id="tenpaiMeldsInput" placeholder="例：123m,456p,(1111z)（可选）"
                     onchange="updateTenpaiDisplay(); calculateTenpai()" /></label><br>
 
             <div id="tenpaiTileDisplay" class="tile-display"></div>
@@ -1357,7 +1357,16 @@
                 // 检查是否有摸牌（14张牌）
                 const inTile = document.getElementById('tenpaiInInput').value.trim();
                 const handTiles = mahjongParser.parseHand(hand);
-                const totalTiles = handTiles.length + (melds ? mahjongParser.parseHand(melds).length : 0);
+                let meldTileCount = 0;
+                if (melds) {
+                    const parsedMelds = mahjongParser.parseMelds(melds);
+                    parsedMelds.forEach(meld => {
+                        if (meld.type === '明槓' || meld.type === '暗槓' || meld.type === '順子' || meld.type === '刻子') {
+                            meldTileCount += 3;
+                        }
+                    });
+                }
+                const totalTiles = handTiles.length + meldTileCount + (inTile ? 1 : 0);
                 
                 console.log('计算向听数:', hand, melds, inTile, '总牌数:', totalTiles);
                 
@@ -1399,16 +1408,16 @@
                 }
                 
                 const handTiles = mahjongParser.parseHand(fullHand);
-                if (handTiles.length !== 14) {
-                    throw new Error(`手牌应为14张，当前为${handTiles.length}张`);
-                }
+                // if (handTiles.length !== 14) {
+                //     throw new Error(`手牌应为14张，当前为${handTiles.length}张`);
+                // }
                 
                 // 计算当前向听数
                 const currentShanten = shantenCalculator.calculate(fullHand, melds);
                 
                 // 检查是否已经和牌（向听数为-1）
                 if (currentShanten.shanten === -1) {
-                    showWinMessage(fullHand, melds, inTile);
+                    showWinMessage(hand, melds, inTile);
                     return;
                 }
                 
@@ -2118,6 +2127,7 @@
         function calculateTenpai() {
             const hand = document.getElementById('tenpaiHandInput').value;
             const melds = document.getElementById('tenpaiMeldsInput').value;
+            const inTile = document.getElementById('tenpaiInInput').value;
 
             if (!hand.trim()) {
                 showErrorAndHideResults('请输入手牌');
@@ -2131,7 +2141,7 @@
                 // 首先尝试计算听牌
                 const tenpaiResults = calculateAllTenpaiTiles(hand, melds, conditions);
 
-                if (tenpaiResults.length > 0) {
+                if (inTile === '' && tenpaiResults.length > 0) {
                     // 是听牌，显示听牌结果
                     showTenpaiResult();
                     const resultDiv = document.getElementById('tenpaiResult');
@@ -2220,6 +2230,7 @@
                         }
                     }
                 } catch (error) {
+                    // console.log(`尝试牌型 ${tile} 时失败: ${error.message}`);
                     // 忽略无效的牌型
                     continue;
                 }
